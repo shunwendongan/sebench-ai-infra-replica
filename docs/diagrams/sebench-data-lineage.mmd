@@ -1,0 +1,20 @@
+flowchart LR
+    I["Input Source\nissue / task idea / 3D scene"]
+    T["Task Spec\nversioned schema"]
+    M["Dataset Manifest\nsplit + hash"]
+    Q["Queue Item\nrun_id + task_id"]
+    W["Work Output\npatch + trace"]
+    J["Judge Output\nverdict + test log"]
+    R["Run Record\nmetrics + cost"]
+    A["Analysis Dataset\nfailure type + summary"]
+    E["Training Export\nsanitized trajectory + reward"]
+
+    I --> T
+    T --> M
+    M --> Q
+    Q --> W
+    W --> J
+    J --> R
+    R --> A
+    A --> E
+    R -->|"cold archive"| C["Artifact Store\nfull logs + container artifacts"]

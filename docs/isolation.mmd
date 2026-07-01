@@ -1,0 +1,30 @@
+flowchart TB
+    subgraph WorkZone["Work Zone：Agent 可见"]
+        W1["problem_statement"]
+        W2["repo snapshot"]
+        W3["public tests / docs"]
+        W4["agent tools"]
+        W5["patch output"]
+    end
+
+    subgraph Boundary["隔离边界"]
+        B1["提交路径白名单"]
+        B2["只读输入挂载"]
+        B3["网络策略"]
+        B4["artifact sanitizer"]
+    end
+
+    subgraph JudgeZone["Judge Zone：Agent 不可见"]
+        J1["hidden tests"]
+        J2["oracle / rule checker"]
+        J3["judge script"]
+        J4["verdict builder"]
+    end
+
+    W5 --> B1 --> J4
+    W1 -. "不可反向访问" .-> J1
+    W2 -. "不可反向访问" .-> J2
+    B4 -->|"sanitized trace"| O["Training / Analysis"]
+    J1 --> J4
+    J2 --> J4
+    J3 --> J4

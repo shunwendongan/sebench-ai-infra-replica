@@ -1,0 +1,19 @@
+flowchart TD
+    N0["输入：真实 issue / 人工需求 / 3D 扩展任务"]
+    N1["需求解析\n抽取目标、约束、验证方式"]
+    N2["题目生成\nproblem_statement + setup + tests"]
+    N3["质量门禁\n可构建/可验证/无泄漏"]
+    N4["冻结版本\nrepo snapshot + task_id + manifest"]
+    N5["环境构建\nbase image + dependency layer"]
+    N6["Agent 执行\nWork 容器内编辑/运行/提交 patch"]
+    N7["Judge 验证\n隐藏测试/规则/LLM judge"]
+    N8["结果归档\npatch/log/trajectory/verdict"]
+    N9["失败归因\n环境/能力/题目质量/泄漏风险"]
+    N10["样本回流\n修题、调参、生成训练数据"]
+
+    N0 --> N1 --> N2 --> N3
+    N3 -->|"通过"| N4 --> N5 --> N6 --> N7 --> N8 --> N9 --> N10
+    N3 -->|"失败"| N2
+    N7 -->|"不可判定"| N9
+    N10 -->|"题目缺陷"| N2
+    N10 -->|"Agent 缺陷"| N6

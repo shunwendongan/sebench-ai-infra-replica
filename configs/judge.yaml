@@ -1,0 +1,28 @@
+# Judge configuration for Work/Judge isolated evaluation.
+judge:
+  mode: local_hidden_pytest
+  checkout_strategy: worktree
+  cache_policy: auto
+  task_distribution: repo-shard-worksteal
+  task_timeout_sec: 30
+  pytest_timeout_sec: 10
+  pytest_plugin_policy: auto
+  hidden_test_visibility: judge_only
+  allowed_submission_paths:
+    - submission/model.patch
+
+isolation:
+  hard_task_timeout: true
+  kill_process_group_on_timeout: true
+  network_disabled: true
+  work_can_read_hidden_tests: false
+  judge_workspace_reused: true
+  cleanup_policy: targeted_hidden_pytest_cleanup
+
+failure_taxonomy:
+  - wrong_edit
+  - patch_apply_error
+  - hidden_judge_timeout
+  - hidden_judge_error
+  - task_timeout
+  - runner_error

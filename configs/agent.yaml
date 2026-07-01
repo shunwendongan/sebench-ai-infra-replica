@@ -1,0 +1,24 @@
+# Baseline agent configuration for local SE-Bench reproduction runs.
+agent:
+  name: local_patch_agent
+  mode: deterministic_fixture
+  max_steps: 32
+  max_wall_time_sec: 300
+  max_prompt_tokens: 32000
+  max_output_tokens: 4096
+  tool_policy:
+    allow_shell: true
+    allow_network: false
+    allowed_write_paths:
+      - submission/
+      - artifacts/work/
+  llm:
+    provider: local_or_openai_compatible
+    model: configurable
+    temperature: 0.0
+    seed: 20260701
+
+trajectory:
+  redact_hidden_tests: true
+  redact_oracle: true
+  retain_tool_outputs: summary

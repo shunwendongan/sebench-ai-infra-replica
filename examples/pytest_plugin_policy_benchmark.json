@@ -1,0 +1,77 @@
+{
+  "dataset_id": "sebench-pytest-plugin-policy-v0.1",
+  "version": "0.1.0",
+  "source": "synthetic_pytest_plugin_policy_fixture",
+  "references": [],
+  "tasks": [
+    {
+      "task_id": "plugin_policy.no_plugin",
+      "title": "No plugin dependency keeps pytest autoload disabled",
+      "category": "code_repair",
+      "prompt": "Fix add while keeping the generated fixture on the fast pytest path.",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "plugin-policy-no-plugin",
+          "files": {
+            "calculator.py": "def add(a, b):\n    return a - b\n"
+          },
+          "agent_files": {
+            "calculator.py": "def add(a, b):\n    return a + b\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "pytest",
+              "files": {
+                "tests/test_env.py": "import os\nfrom calculator import add\n\n\ndef test_fast_path_env_and_add():\n    assert os.environ['PYTEST_DISABLE_PLUGIN_AUTOLOAD'] == '1'\n    assert add(2, 3) == 5\n"
+              }
+            }
+          ]
+        }
+      },
+      "expected_artifacts": ["calculator.py"],
+      "allowed_paths": ["calculator.py"],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed"
+        }
+      ]
+    },
+    {
+      "task_id": "plugin_policy.pytest_asyncio_dep",
+      "title": "Detected pytest plugin dependency enables pytest autoload",
+      "category": "code_repair",
+      "prompt": "Fix add while preserving plugin-compatible pytest behavior.",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "plugin-policy-asyncio-dependency",
+          "files": {
+            "calculator.py": "def add(a, b):\n    return a - b\n",
+            "pyproject.toml": "[project]\ndependencies = ['pytest-asyncio>=0.23']\n"
+          },
+          "agent_files": {
+            "calculator.py": "def add(a, b):\n    return a + b\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "pytest",
+              "files": {
+                "tests/test_env.py": "import os\nfrom calculator import add\n\n\ndef test_plugin_path_env_and_add():\n    assert os.environ.get('PYTEST_DISABLE_PLUGIN_AUTOLOAD') != '1'\n    assert add(2, 3) == 5\n"
+              }
+            }
+          ]
+        }
+      },
+      "expected_artifacts": ["calculator.py"],
+      "allowed_paths": ["calculator.py"],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed"
+        }
+      ]
+    }
+  ]
+}

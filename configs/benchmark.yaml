@@ -1,0 +1,30 @@
+# Local benchmark configuration used by the GitHub-ready reproduction flow.
+benchmark:
+  backend: apple_mlx_local
+  manifest: examples/git_pytest_benchmark_1024.json
+  generated_fixtures:
+    command: python scripts/build_git_pytest_benchmark.py --tasks 1024 --out examples/git_pytest_benchmark_1024.json
+  warmup: 0
+  repeat: 3
+  workers: 32
+  scheduler_policy: fixed
+  task_distribution: repo-shard-worksteal
+  pressure_test: false
+
+metrics:
+  required:
+    - pass_rate
+    - throughput_tasks_per_sec
+    - wall_time_p50_sec
+    - wall_time_p95_sec
+    - judge_time_sec_avg
+    - repo_checkout_time_sec_avg
+    - pytest_execution_time_sec_avg
+    - hidden_judge_timeout_count
+    - task_timeout_count
+    - pytest_subprocess_count
+
+reporting:
+  summary_out: artifacts/reports/shared_cache_auto_production_1024_summary.md
+  json_out: artifacts/reports/shared_cache_auto_production_1024_report.json
+  caveat: Mac MLX/MPS local results are engineering validation, not CUDA cluster throughput.

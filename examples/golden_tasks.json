@@ -1,0 +1,41 @@
+{
+  "dataset_id": "sebench-replica-golden",
+  "version": "0.1.0",
+  "source": "synthetic_public_reproduction",
+  "references": [
+    "https://arxiv.org/abs/2310.06770",
+    "https://arxiv.org/abs/2308.03688"
+  ],
+  "tasks": [
+    {
+      "task_id": "benchmark_contract_check",
+      "title": "Validate benchmark contract",
+      "category": "benchmark_authoring",
+      "prompt": "Write a concise answer in submission/answer.txt explaining why the benchmark is reproducible.",
+      "fixtures": {
+        "public_reproduction": true
+      },
+      "expected_artifacts": ["submission/answer.txt"],
+      "allowed_paths": ["submission/"],
+      "scoring": [
+        {
+          "name": "answer_created",
+          "kind": "file_exists",
+          "path": "submission/answer.txt",
+          "weight": 0.4
+        },
+        {
+          "name": "mentions_reproducible",
+          "kind": "contains",
+          "path": "submission/answer.txt",
+          "expected": "reproducible",
+          "weight": 0.6
+        }
+      ],
+      "tags": ["golden", "ai-infra"],
+      "metadata": {
+        "paper_replication": true
+      }
+    }
+  ]
+}

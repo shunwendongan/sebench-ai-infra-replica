@@ -1,0 +1,40 @@
+flowchart LR
+    subgraph Authoring["题目构建层"]
+        A1["需求解析器\nRequirement Parser"]
+        A2["Authoring Agent\n题目生成/补全"]
+        A3["质量检查器\nStatic QA"]
+        A4["任务仓库\nTask Registry"]
+    end
+
+    subgraph Dataset["数据与版本层"]
+        D1["Repo Snapshot\nbase_commit + deps"]
+        D2["Task Spec Store\nversioned JSON/YAML"]
+        D3["Dataset Manifest\nsplit + version"]
+        D4["Artifact Store\npatch/log/trajectory"]
+    end
+
+    subgraph Runtime["评测运行层"]
+        S1["Scheduler\n任务调度"]
+        W["Work Container\nAgent 执行/patch 生成"]
+        J["Judge Container\n隐藏测试/verdict"]
+        R["Result Collector\n结果归档"]
+    end
+
+    subgraph Feedback["分析与训练层"]
+        F1["Failure Analyzer\n失败归因"]
+        F2["Report Builder\n指标/榜单"]
+        F3["Trajectory Sanitizer\n去泄漏轨迹"]
+        F4["Training Export\nreward/SFT 数据"]
+    end
+
+    A1 --> A2 --> A3 --> A4
+    A4 --> D2
+    D1 --> D3
+    D2 --> D3
+    D3 --> S1
+    S1 --> W
+    W -->|"patch + stdout + tool trace"| J
+    J -->|"verdict + hidden test log"| R
+    R --> D4
+    D4 --> F1 --> F2
+    F1 --> F3 --> F4

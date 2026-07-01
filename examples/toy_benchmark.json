@@ -1,0 +1,314 @@
+{
+  "dataset_id": "sebench-toy-v0.1",
+  "version": "0.1.0",
+  "source": "toy_true_loop",
+  "references": [
+    "https://arxiv.org/abs/2310.06770",
+    "https://github.com/SWE-bench/SWE-bench"
+  ],
+  "tasks": [
+    {
+      "task_id": "toy.python.fix_add",
+      "title": "Fix an arithmetic helper",
+      "category": "code_repair",
+      "prompt": "Fix calculator.add so it returns the sum of two numbers.",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "toy-python-calc",
+          "files": {
+            "calculator.py": "def add(a, b):\n    return a - b\n"
+          },
+          "agent_files": {
+            "calculator.py": "def add(a, b):\n    return a + b\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_function",
+              "path": "calculator.py",
+              "function": "add",
+              "args": [2, 3],
+              "expected": 5
+            },
+            {
+              "kind": "python_function",
+              "path": "calculator.py",
+              "function": "add",
+              "args": [-4, 6],
+              "expected": 2
+            }
+          ]
+        }
+      },
+      "expected_artifacts": ["calculator.py"],
+      "allowed_paths": ["calculator.py"],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": ["toy", "code_repair", "true_loop"],
+      "metadata": {
+        "difficulty": "easy",
+        "failure_type_if_wrong": "wrong_edit"
+      }
+    },
+    {
+      "task_id": "toy.cli.greeting",
+      "title": "Fix CLI greeting output",
+      "category": "code_repair",
+      "prompt": "Fix greeter.py so `python greeter.py Ada` prints `Hello, Ada!`.",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "toy-cli-greeter",
+          "files": {
+            "greeter.py": "import sys\n\nname = sys.argv[1] if len(sys.argv) > 1 else 'world'\nprint(f'Hi {name}')\n"
+          },
+          "agent_files": {
+            "greeter.py": "import sys\n\nname = sys.argv[1] if len(sys.argv) > 1 else 'world'\nprint(f'Hello, {name}!')\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_script_stdout_contains",
+              "path": "greeter.py",
+              "args": ["Ada"],
+              "expected": "Hello, Ada!"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": ["greeter.py"],
+      "allowed_paths": ["greeter.py"],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": ["toy", "cli", "true_loop"],
+      "metadata": {
+        "difficulty": "easy",
+        "failure_type_if_wrong": "wrong_edit"
+      }
+    },
+    {
+      "task_id": "toy.json.schema",
+      "title": "Produce a structured benchmark verdict",
+      "category": "benchmark_authoring",
+      "prompt": "Write submission/result.json with a passed verdict and reproducible note.",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "toy-json-verdict",
+          "files": {
+            "README.md": "# Toy verdict task\n"
+          },
+          "agent_files": {
+            "submission/result.json": "{\"verdict\": \"pass\", \"note\": \"reproducible local toy benchmark\"}\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "json_value",
+              "path": "submission/result.json",
+              "json_path": "verdict",
+              "expected": "pass"
+            },
+            {
+              "kind": "json_value",
+              "path": "submission/result.json",
+              "json_path": "note",
+              "expected": "reproducible local toy benchmark"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": ["submission/result.json"],
+      "allowed_paths": ["submission/"],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": ["toy", "json", "true_loop"],
+      "metadata": {
+        "difficulty": "easy",
+        "failure_type_if_wrong": "format_error"
+      }
+    },
+    {
+      "task_id": "toy.python.slugify",
+      "title": "Fix slugify helper",
+      "category": "code_repair",
+      "prompt": "Fix text_utils.slugify so it lowercases text and replaces spaces with hyphens.",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "toy-text-utils",
+          "files": {
+            "text_utils.py": "def slugify(text):\n    return text.replace(' ', '_')\n"
+          },
+          "agent_files": {
+            "text_utils.py": "def slugify(text):\n    return text.strip().lower().replace(' ', '-')\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_function",
+              "path": "text_utils.py",
+              "function": "slugify",
+              "args": ["Hello World"],
+              "expected": "hello-world"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": ["text_utils.py"],
+      "allowed_paths": ["text_utils.py"],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": ["toy", "code_repair", "true_loop"],
+      "metadata": {
+        "difficulty": "easy",
+        "failure_type_if_wrong": "wrong_edit"
+      }
+    },
+    {
+      "task_id": "toy.python.unique",
+      "title": "Preserve ordered unique values",
+      "category": "code_repair",
+      "prompt": "Fix unique_ordered so it removes duplicates while preserving first occurrence order.",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "toy-list-utils",
+          "files": {
+            "list_utils.py": "def unique_ordered(items):\n    return sorted(set(items))\n"
+          },
+          "agent_files": {
+            "list_utils.py": "def unique_ordered(items):\n    seen = set()\n    out = []\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            out.append(item)\n    return out\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_function",
+              "path": "list_utils.py",
+              "function": "unique_ordered",
+              "args": [[3, 1, 3, 2, 1]],
+              "expected": [3, 1, 2]
+            }
+          ]
+        }
+      },
+      "expected_artifacts": ["list_utils.py"],
+      "allowed_paths": ["list_utils.py"],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": ["toy", "code_repair", "true_loop"],
+      "metadata": {
+        "difficulty": "easy",
+        "failure_type_if_wrong": "wrong_edit"
+      }
+    },
+    {
+      "task_id": "toy.json.threshold",
+      "title": "Write threshold config",
+      "category": "data_pipeline",
+      "prompt": "Write config/pipeline.json with threshold=0.8.",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "toy-config-threshold",
+          "files": {
+            "README.md": "# Pipeline config task\n"
+          },
+          "agent_files": {
+            "config/pipeline.json": "{\"threshold\": 0.8, \"mode\": \"strict\"}\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "json_value",
+              "path": "config/pipeline.json",
+              "json_path": "threshold",
+              "expected": 0.8
+            },
+            {
+              "kind": "json_value",
+              "path": "config/pipeline.json",
+              "json_path": "mode",
+              "expected": "strict"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": ["config/pipeline.json"],
+      "allowed_paths": ["config/"],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": ["toy", "json", "true_loop"],
+      "metadata": {
+        "difficulty": "easy",
+        "failure_type_if_wrong": "format_error"
+      }
+    },
+    {
+      "task_id": "toy.python.area",
+      "title": "Fix rectangle area",
+      "category": "numeric_reasoning",
+      "prompt": "Fix geometry.area so it returns width * height.",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "toy-geometry-area",
+          "files": {
+            "geometry.py": "def area(width, height):\n    return width + height\n"
+          },
+          "agent_files": {
+            "geometry.py": "def area(width, height):\n    return width * height\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_function",
+              "path": "geometry.py",
+              "function": "area",
+              "args": [4, 5],
+              "expected": 20
+            }
+          ]
+        }
+      },
+      "expected_artifacts": ["geometry.py"],
+      "allowed_paths": ["geometry.py"],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": ["toy", "numeric", "true_loop"],
+      "metadata": {
+        "difficulty": "easy",
+        "failure_type_if_wrong": "wrong_edit"
+      }
+    }
+  ]
+}

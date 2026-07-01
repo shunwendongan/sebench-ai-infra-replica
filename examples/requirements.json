@@ -1,0 +1,11 @@
+{
+  "requirement": "复现一个公开论文导向的 SE-Bench 长程 Agent 评测任务，要求覆盖 benchmark 数据构造、Work/Judge 隔离评测、reward 回归信号，以及 3D spatial reasoning geometry bridge。The task must be reproducible without internal ByteDance code or private datasets.",
+  "references": [
+    "https://arxiv.org/abs/2310.06770",
+    "https://arxiv.org/abs/2308.03688",
+    "https://arxiv.org/abs/2405.15793",
+    "https://arxiv.org/abs/2307.12981",
+    "https://arxiv.org/abs/1702.04405",
+    "https://arxiv.org/abs/2106.09685"
+  ]
+}

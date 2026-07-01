@@ -1,0 +1,22 @@
+.DS_Store
+.env
+.venv/
+.venv-apple/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+*.pyo
+*.db
+*.sqlite
+artifacts/
+reports/
+dist/
+build/
+*.egg-info/
+
+# Generated local git benchmark fixtures. Rebuild with
+# `python scripts/build_git_pytest_benchmark.py`.
+examples/git_fixtures/
+examples/git_pytest_benchmark.json
+examples/git_pytest_benchmark_1024.json

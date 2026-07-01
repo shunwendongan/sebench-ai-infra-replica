@@ -1,0 +1,18 @@
+{
+  "scene_id": "synthetic-scannet-style-room-001",
+  "source_points": [
+    [0.0, 0.0, 0.0],
+    [1.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0],
+    [0.0, 0.0, 1.0],
+    [1.0, 1.0, 1.0]
+  ],
+  "target_points": [
+    [1.0, 2.0, 3.0],
+    [1.0, 3.0, 3.0],
+    [0.0, 2.0, 3.0],
+    [1.0, 2.0, 4.0],
+    [0.0, 3.0, 4.0]
+  ],
+  "notes": "A 90-degree z-axis rotation plus translation, shaped like a tiny ScanNet-style object transform fixture."
+}

@@ -1,0 +1,980 @@
+{
+  "dataset_id": "sebench-realistic-v0.1",
+  "version": "0.1.0",
+  "source": "simulated_real_repo_true_loop",
+  "references": [
+    "https://arxiv.org/abs/2310.06770",
+    "https://github.com/SWE-bench/SWE-bench",
+    "https://github.com/SWE-agent/SWE-agent"
+  ],
+  "tasks": [
+    {
+      "task_id": "realistic.metrics.percent_change",
+      "title": "Fix percent change calculation",
+      "category": "numeric_reasoning",
+      "prompt": "Fix percent change calculation",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "analytics-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/metrics.py": "def percent_change(old, new):\n    return new - old\n"
+          },
+          "agent_files": {
+            "app/metrics.py": "def percent_change(old, new):\n    if old == 0:\n        return None\n    return round((new - old) / old, 4)\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.metrics import percent_change\nassert percent_change(100, 125) == 0.25\nassert percent_change(80, 60) == -0.25\nassert percent_change(0, 10) is None\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/metrics.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.validation.email",
+      "title": "Tighten email validation",
+      "category": "code_repair",
+      "prompt": "Tighten email validation",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "user-service",
+          "files": {
+            "app/__init__.py": "",
+            "app/validators.py": "def is_valid_email(value):\n    return '@' in value\n"
+          },
+          "agent_files": {
+            "app/validators.py": "def is_valid_email(value):\n    if not isinstance(value, str) or value.count('@') != 1:\n        return False\n    local, domain = value.split('@')\n    return bool(local) and '.' in domain and ' ' not in value\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.validators import is_valid_email\nassert is_valid_email('ada@example.com')\nassert not is_valid_email('ada example.com')\nassert not is_valid_email('ada@@example.com')\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/validators.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.csv.sum_amounts",
+      "title": "Parse CSV amounts",
+      "category": "data_pipeline",
+      "prompt": "Parse CSV amounts",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "analytics-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/csv_tools.py": "def sum_amounts(text):\n    return len(text.splitlines())\n"
+          },
+          "agent_files": {
+            "app/csv_tools.py": "import csv\nimport io\n\ndef sum_amounts(text):\n    rows = csv.DictReader(io.StringIO(text))\n    return sum(float(row['amount']) for row in rows)\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.csv_tools import sum_amounts\ndata = 'id,amount\\n1,10.5\\n2,2.25\\n'\nassert sum_amounts(data) == 12.75\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/csv_tools.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.mapping.default",
+      "title": "Return mapping default safely",
+      "category": "code_repair",
+      "prompt": "Return mapping default safely",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/mapping.py": "def get_or_default(mapping, key, default=None):\n    return mapping[key]\n"
+          },
+          "agent_files": {
+            "app/mapping.py": "def get_or_default(mapping, key, default=None):\n    return mapping.get(key, default)\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.mapping import get_or_default\nassert get_or_default({'a': 1}, 'a') == 1\nassert get_or_default({'a': 1}, 'b', 5) == 5\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/mapping.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.pricing.discount",
+      "title": "Apply percentage discount",
+      "category": "numeric_reasoning",
+      "prompt": "Apply percentage discount",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "shop-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/pricing.py": "def discounted_total(items, discount):\n    subtotal = sum(items)\n    return subtotal + discount\n"
+          },
+          "agent_files": {
+            "app/pricing.py": "def discounted_total(items, discount):\n    subtotal = sum(items)\n    return round(subtotal * (1 - discount), 2)\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.pricing import discounted_total\nassert discounted_total([10, 20], 0.1) == 27.0\nassert discounted_total([9.99, 5.01], 0.2) == 12.0\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/pricing.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.dates.weekday",
+      "title": "Parse ISO date weekday",
+      "category": "code_repair",
+      "prompt": "Parse ISO date weekday",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/dates.py": "def iso_weekday(value):\n    return int(value.split('-')[-1])\n"
+          },
+          "agent_files": {
+            "app/dates.py": "from datetime import date\n\ndef iso_weekday(value):\n    return date.fromisoformat(value).isoweekday()\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.dates import iso_weekday\nassert iso_weekday('2026-06-30') == 2\nassert iso_weekday('2026-07-05') == 7\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/dates.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.stats.median",
+      "title": "Fix median for even inputs",
+      "category": "numeric_reasoning",
+      "prompt": "Fix median for even inputs",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "analytics-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/stats.py": "def median(values):\n    ordered = sorted(values)\n    return ordered[len(ordered)//2]\n"
+          },
+          "agent_files": {
+            "app/stats.py": "def median(values):\n    ordered = sorted(values)\n    n = len(ordered)\n    mid = n // 2\n    if n % 2:\n        return ordered[mid]\n    return (ordered[mid - 1] + ordered[mid]) / 2\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.stats import median\nassert median([3, 1, 2]) == 2\nassert median([4, 1, 2, 3]) == 2.5\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/stats.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.text.normalize_space",
+      "title": "Normalize whitespace",
+      "category": "code_repair",
+      "prompt": "Normalize whitespace",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/text.py": "def normalize_space(text):\n    return text.replace(' ', '')\n"
+          },
+          "agent_files": {
+            "app/text.py": "def normalize_space(text):\n    return ' '.join(text.split())\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.text import normalize_space\nassert normalize_space('  hello   world\\n') == 'hello world'\nassert normalize_space('a\\tb') == 'a b'\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/text.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.security.mask_token",
+      "title": "Mask API token display",
+      "category": "code_repair",
+      "prompt": "Mask API token display",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "security-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/security.py": "def mask_token(token):\n    return token\n"
+          },
+          "agent_files": {
+            "app/security.py": "def mask_token(token):\n    if len(token) <= 8:\n        return '***'\n    return token[:4] + '...' + token[-4:]\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.security import mask_token\nassert mask_token('abcd1234wxyz') == 'abcd...wxyz'\nassert mask_token('short') == '***'\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/security.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.inventory.merge",
+      "title": "Merge inventory counts",
+      "category": "data_pipeline",
+      "prompt": "Merge inventory counts",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "shop-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/inventory.py": "def merge_inventory(left, right):\n    return right\n"
+          },
+          "agent_files": {
+            "app/inventory.py": "def merge_inventory(left, right):\n    merged = dict(left)\n    for sku, count in right.items():\n        merged[sku] = merged.get(sku, 0) + count\n    return merged\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.inventory import merge_inventory\nassert merge_inventory({'a': 2}, {'a': 3, 'b': 1}) == {'a': 5, 'b': 1}\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/inventory.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.records.filter_active",
+      "title": "Filter active records",
+      "category": "data_pipeline",
+      "prompt": "Filter active records",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "user-service",
+          "files": {
+            "app/__init__.py": "",
+            "app/records.py": "def active_records(records):\n    return records\n"
+          },
+          "agent_files": {
+            "app/records.py": "def active_records(records):\n    return [row for row in records if row.get('active') is True]\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.records import active_records\nrows = [{'id': 1, 'active': True}, {'id': 2, 'active': False}, {'id': 3}]\nassert active_records(rows) == [{'id': 1, 'active': True}]\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/records.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.json.canonical",
+      "title": "Canonicalize JSON output",
+      "category": "data_pipeline",
+      "prompt": "Canonicalize JSON output",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/json_tools.py": "def canonical_json(payload):\n    return str(payload)\n"
+          },
+          "agent_files": {
+            "app/json_tools.py": "import json\n\ndef canonical_json(payload):\n    return json.dumps(payload, sort_keys=True, separators=(',', ':'))\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.json_tools import canonical_json\nassert canonical_json({'b': 2, 'a': 1}) == '{\"a\":1,\"b\":2}'\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/json_tools.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.geometry.distance",
+      "title": "Compute 2D distance",
+      "category": "numeric_reasoning",
+      "prompt": "Compute 2D distance",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "analytics-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/geometry.py": "def distance(a, b):\n    return abs(a[0] - b[0]) + abs(a[1] - b[1])\n"
+          },
+          "agent_files": {
+            "app/geometry.py": "import math\n\ndef distance(a, b):\n    return math.hypot(a[0] - b[0], a[1] - b[1])\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.geometry import distance\nassert distance((0, 0), (3, 4)) == 5.0\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/geometry.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.config.env_bool",
+      "title": "Parse environment booleans",
+      "category": "code_repair",
+      "prompt": "Parse environment booleans",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/config.py": "def env_bool(value):\n    return bool(value)\n"
+          },
+          "agent_files": {
+            "app/config.py": "def env_bool(value):\n    normalized = str(value).strip().lower()\n    if normalized in {'1', 'true', 'yes', 'on'}:\n        return True\n    if normalized in {'0', 'false', 'no', 'off'}:\n        return False\n    raise ValueError(f'not a boolean: {value}')\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.config import env_bool\nassert env_bool('YES') is True\nassert env_bool('off') is False\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/config.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.batching.chunks",
+      "title": "Chunk sequences",
+      "category": "data_pipeline",
+      "prompt": "Chunk sequences",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/batching.py": "def chunks(items, size):\n    return [items]\n"
+          },
+          "agent_files": {
+            "app/batching.py": "def chunks(items, size):\n    return [items[i:i + size] for i in range(0, len(items), size)]\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.batching import chunks\nassert chunks([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/batching.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.retry.backoff",
+      "title": "Generate exponential backoff schedule",
+      "category": "numeric_reasoning",
+      "prompt": "Generate exponential backoff schedule",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/retry.py": "def backoff(base, retries):\n    return [base] * retries\n"
+          },
+          "agent_files": {
+            "app/retry.py": "def backoff(base, retries):\n    return [base * (2 ** i) for i in range(retries)]\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.retry import backoff\nassert backoff(0.5, 4) == [0.5, 1.0, 2.0, 4.0]\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/retry.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.schema.required",
+      "title": "Report missing required fields",
+      "category": "benchmark_authoring",
+      "prompt": "Report missing required fields",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "authoring-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/schema.py": "def missing_required(payload, required):\n    return []\n"
+          },
+          "agent_files": {
+            "app/schema.py": "def missing_required(payload, required):\n    return [key for key in required if key not in payload]\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.schema import missing_required\nassert missing_required({'a': 1}, ['a', 'b', 'c']) == ['b', 'c']\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/schema.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.logging.redact_email",
+      "title": "Redact email local part",
+      "category": "code_repair",
+      "prompt": "Redact email local part",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "security-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/logging.py": "def redact_email(value):\n    return value\n"
+          },
+          "agent_files": {
+            "app/logging.py": "def redact_email(value):\n    if '@' not in value:\n        return value\n    _, domain = value.split('@', 1)\n    return '***@' + domain\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.logging import redact_email\nassert redact_email('ada@example.com') == '***@example.com'\nassert redact_email('no-email') == 'no-email'\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/logging.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.tokens.count_words",
+      "title": "Count non-empty words",
+      "category": "data_pipeline",
+      "prompt": "Count non-empty words",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "analytics-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/tokens.py": "def count_words(text):\n    return len(text)\n"
+          },
+          "agent_files": {
+            "app/tokens.py": "def count_words(text):\n    return len([part for part in text.split() if part])\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.tokens import count_words\nassert count_words('one  two\\nthree') == 3\n"
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/tokens.py"
+      ],
+      "allowed_paths": [
+        "app/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package"
+      }
+    },
+    {
+      "task_id": "realistic.config.service_json",
+      "title": "Write service runtime config",
+      "category": "benchmark_authoring",
+      "prompt": "Write config/service.json with retries=3 and enabled=true.",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "service-config",
+          "files": {
+            "README.md": "# service config\n"
+          },
+          "agent_files": {
+            "config/service.json": "{\"retries\": 3, \"enabled\": true}\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "json_value",
+              "path": "config/service.json",
+              "json_path": "retries",
+              "expected": 3
+            },
+            {
+              "kind": "json_value",
+              "path": "config/service.json",
+              "json_path": "enabled",
+              "expected": true
+            }
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "config/service.json"
+      ],
+      "allowed_paths": [
+        "config/"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "simulated_real_repo",
+        "json",
+        "true_loop",
+        "round3"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "format_error",
+        "repo_style": "config_artifact"
+      }
+    }
+  ]
+}

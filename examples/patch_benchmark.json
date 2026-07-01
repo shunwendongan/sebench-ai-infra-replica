@@ -1,0 +1,1060 @@
+{
+  "dataset_id": "sebench-patch-v0.1",
+  "version": "0.1.0",
+  "source": "patch_submission_true_loop",
+  "references": [
+    "https://arxiv.org/abs/2310.06770",
+    "https://github.com/SWE-bench/SWE-bench",
+    "https://github.com/SWE-agent/SWE-agent"
+  ],
+  "tasks": [
+    {
+      "task_id": "patch.realistic.metrics.percent_change",
+      "title": "Patch submission: Fix percent change calculation",
+      "category": "numeric_reasoning",
+      "prompt": "Fix percent change calculation",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "analytics-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/metrics.py": "def percent_change(old, new):\n    return new - old\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.metrics import percent_change\nassert percent_change(100, 125) == 0.25\nassert percent_change(80, 60) == -0.25\nassert percent_change(0, 10) is None\n"
+            }
+          ],
+          "agent_patch": "--- a/app/metrics.py\n+++ b/app/metrics.py\n@@ -1,2 +1,4 @@\n def percent_change(old, new):\n-    return new - old\n+    if old == 0:\n+        return None\n+    return round((new - old) / old, 4)\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/metrics.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.validation.email",
+      "title": "Patch submission: Tighten email validation",
+      "category": "code_repair",
+      "prompt": "Tighten email validation",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "user-service",
+          "files": {
+            "app/__init__.py": "",
+            "app/validators.py": "def is_valid_email(value):\n    return '@' in value\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.validators import is_valid_email\nassert is_valid_email('ada@example.com')\nassert not is_valid_email('ada example.com')\nassert not is_valid_email('ada@@example.com')\n"
+            }
+          ],
+          "agent_patch": "--- a/app/validators.py\n+++ b/app/validators.py\n@@ -1,2 +1,5 @@\n def is_valid_email(value):\n-    return '@' in value\n+    if not isinstance(value, str) or value.count('@') != 1:\n+        return False\n+    local, domain = value.split('@')\n+    return bool(local) and '.' in domain and ' ' not in value\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/validators.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.csv.sum_amounts",
+      "title": "Patch submission: Parse CSV amounts",
+      "category": "data_pipeline",
+      "prompt": "Parse CSV amounts",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "analytics-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/csv_tools.py": "def sum_amounts(text):\n    return len(text.splitlines())\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.csv_tools import sum_amounts\ndata = 'id,amount\\n1,10.5\\n2,2.25\\n'\nassert sum_amounts(data) == 12.75\n"
+            }
+          ],
+          "agent_patch": "--- a/app/csv_tools.py\n+++ b/app/csv_tools.py\n@@ -1,2 +1,6 @@\n+import csv\n+import io\n+\n def sum_amounts(text):\n-    return len(text.splitlines())\n+    rows = csv.DictReader(io.StringIO(text))\n+    return sum(float(row['amount']) for row in rows)\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/csv_tools.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.mapping.default",
+      "title": "Patch submission: Return mapping default safely",
+      "category": "code_repair",
+      "prompt": "Return mapping default safely",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/mapping.py": "def get_or_default(mapping, key, default=None):\n    return mapping[key]\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.mapping import get_or_default\nassert get_or_default({'a': 1}, 'a') == 1\nassert get_or_default({'a': 1}, 'b', 5) == 5\n"
+            }
+          ],
+          "agent_patch": "--- a/app/mapping.py\n+++ b/app/mapping.py\n@@ -1,2 +1,2 @@\n def get_or_default(mapping, key, default=None):\n-    return mapping[key]\n+    return mapping.get(key, default)\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/mapping.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.pricing.discount",
+      "title": "Patch submission: Apply percentage discount",
+      "category": "numeric_reasoning",
+      "prompt": "Apply percentage discount",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "shop-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/pricing.py": "def discounted_total(items, discount):\n    subtotal = sum(items)\n    return subtotal + discount\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.pricing import discounted_total\nassert discounted_total([10, 20], 0.1) == 27.0\nassert discounted_total([9.99, 5.01], 0.2) == 12.0\n"
+            }
+          ],
+          "agent_patch": "--- a/app/pricing.py\n+++ b/app/pricing.py\n@@ -1,3 +1,3 @@\n def discounted_total(items, discount):\n     subtotal = sum(items)\n-    return subtotal + discount\n+    return round(subtotal * (1 - discount), 2)\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/pricing.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.dates.weekday",
+      "title": "Patch submission: Parse ISO date weekday",
+      "category": "code_repair",
+      "prompt": "Parse ISO date weekday",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/dates.py": "def iso_weekday(value):\n    return int(value.split('-')[-1])\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.dates import iso_weekday\nassert iso_weekday('2026-06-30') == 2\nassert iso_weekday('2026-07-05') == 7\n"
+            }
+          ],
+          "agent_patch": "--- a/app/dates.py\n+++ b/app/dates.py\n@@ -1,2 +1,4 @@\n+from datetime import date\n+\n def iso_weekday(value):\n-    return int(value.split('-')[-1])\n+    return date.fromisoformat(value).isoweekday()\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/dates.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.stats.median",
+      "title": "Patch submission: Fix median for even inputs",
+      "category": "numeric_reasoning",
+      "prompt": "Fix median for even inputs",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "analytics-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/stats.py": "def median(values):\n    ordered = sorted(values)\n    return ordered[len(ordered)//2]\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.stats import median\nassert median([3, 1, 2]) == 2\nassert median([4, 1, 2, 3]) == 2.5\n"
+            }
+          ],
+          "agent_patch": "--- a/app/stats.py\n+++ b/app/stats.py\n@@ -1,3 +1,7 @@\n def median(values):\n     ordered = sorted(values)\n-    return ordered[len(ordered)//2]\n+    n = len(ordered)\n+    mid = n // 2\n+    if n % 2:\n+        return ordered[mid]\n+    return (ordered[mid - 1] + ordered[mid]) / 2\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/stats.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.text.normalize_space",
+      "title": "Patch submission: Normalize whitespace",
+      "category": "code_repair",
+      "prompt": "Normalize whitespace",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/text.py": "def normalize_space(text):\n    return text.replace(' ', '')\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.text import normalize_space\nassert normalize_space('  hello   world\\n') == 'hello world'\nassert normalize_space('a\\tb') == 'a b'\n"
+            }
+          ],
+          "agent_patch": "--- a/app/text.py\n+++ b/app/text.py\n@@ -1,2 +1,2 @@\n def normalize_space(text):\n-    return text.replace(' ', '')\n+    return ' '.join(text.split())\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/text.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.security.mask_token",
+      "title": "Patch submission: Mask API token display",
+      "category": "code_repair",
+      "prompt": "Mask API token display",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "security-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/security.py": "def mask_token(token):\n    return token\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.security import mask_token\nassert mask_token('abcd1234wxyz') == 'abcd...wxyz'\nassert mask_token('short') == '***'\n"
+            }
+          ],
+          "agent_patch": "--- a/app/security.py\n+++ b/app/security.py\n@@ -1,2 +1,4 @@\n def mask_token(token):\n-    return token\n+    if len(token) <= 8:\n+        return '***'\n+    return token[:4] + '...' + token[-4:]\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/security.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.inventory.merge",
+      "title": "Patch submission: Merge inventory counts",
+      "category": "data_pipeline",
+      "prompt": "Merge inventory counts",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "shop-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/inventory.py": "def merge_inventory(left, right):\n    return right\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.inventory import merge_inventory\nassert merge_inventory({'a': 2}, {'a': 3, 'b': 1}) == {'a': 5, 'b': 1}\n"
+            }
+          ],
+          "agent_patch": "--- a/app/inventory.py\n+++ b/app/inventory.py\n@@ -1,2 +1,5 @@\n def merge_inventory(left, right):\n-    return right\n+    merged = dict(left)\n+    for sku, count in right.items():\n+        merged[sku] = merged.get(sku, 0) + count\n+    return merged\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/inventory.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.records.filter_active",
+      "title": "Patch submission: Filter active records",
+      "category": "data_pipeline",
+      "prompt": "Filter active records",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "user-service",
+          "files": {
+            "app/__init__.py": "",
+            "app/records.py": "def active_records(records):\n    return records\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.records import active_records\nrows = [{'id': 1, 'active': True}, {'id': 2, 'active': False}, {'id': 3}]\nassert active_records(rows) == [{'id': 1, 'active': True}]\n"
+            }
+          ],
+          "agent_patch": "--- a/app/records.py\n+++ b/app/records.py\n@@ -1,2 +1,2 @@\n def active_records(records):\n-    return records\n+    return [row for row in records if row.get('active') is True]\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/records.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.json.canonical",
+      "title": "Patch submission: Canonicalize JSON output",
+      "category": "data_pipeline",
+      "prompt": "Canonicalize JSON output",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/json_tools.py": "def canonical_json(payload):\n    return str(payload)\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.json_tools import canonical_json\nassert canonical_json({'b': 2, 'a': 1}) == '{\"a\":1,\"b\":2}'\n"
+            }
+          ],
+          "agent_patch": "--- a/app/json_tools.py\n+++ b/app/json_tools.py\n@@ -1,2 +1,4 @@\n+import json\n+\n def canonical_json(payload):\n-    return str(payload)\n+    return json.dumps(payload, sort_keys=True, separators=(',', ':'))\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/json_tools.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.geometry.distance",
+      "title": "Patch submission: Compute 2D distance",
+      "category": "numeric_reasoning",
+      "prompt": "Compute 2D distance",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "analytics-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/geometry.py": "def distance(a, b):\n    return abs(a[0] - b[0]) + abs(a[1] - b[1])\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.geometry import distance\nassert distance((0, 0), (3, 4)) == 5.0\n"
+            }
+          ],
+          "agent_patch": "--- a/app/geometry.py\n+++ b/app/geometry.py\n@@ -1,2 +1,4 @@\n+import math\n+\n def distance(a, b):\n-    return abs(a[0] - b[0]) + abs(a[1] - b[1])\n+    return math.hypot(a[0] - b[0], a[1] - b[1])\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/geometry.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.config.env_bool",
+      "title": "Patch submission: Parse environment booleans",
+      "category": "code_repair",
+      "prompt": "Parse environment booleans",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/config.py": "def env_bool(value):\n    return bool(value)\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.config import env_bool\nassert env_bool('YES') is True\nassert env_bool('off') is False\n"
+            }
+          ],
+          "agent_patch": "--- a/app/config.py\n+++ b/app/config.py\n@@ -1,2 +1,7 @@\n def env_bool(value):\n-    return bool(value)\n+    normalized = str(value).strip().lower()\n+    if normalized in {'1', 'true', 'yes', 'on'}:\n+        return True\n+    if normalized in {'0', 'false', 'no', 'off'}:\n+        return False\n+    raise ValueError(f'not a boolean: {value}')\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/config.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.batching.chunks",
+      "title": "Patch submission: Chunk sequences",
+      "category": "data_pipeline",
+      "prompt": "Chunk sequences",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/batching.py": "def chunks(items, size):\n    return [items]\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.batching import chunks\nassert chunks([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n"
+            }
+          ],
+          "agent_patch": "--- a/app/batching.py\n+++ b/app/batching.py\n@@ -1,2 +1,2 @@\n def chunks(items, size):\n-    return [items]\n+    return [items[i:i + size] for i in range(0, len(items), size)]\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/batching.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.retry.backoff",
+      "title": "Patch submission: Generate exponential backoff schedule",
+      "category": "numeric_reasoning",
+      "prompt": "Generate exponential backoff schedule",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "platform-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/retry.py": "def backoff(base, retries):\n    return [base] * retries\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.retry import backoff\nassert backoff(0.5, 4) == [0.5, 1.0, 2.0, 4.0]\n"
+            }
+          ],
+          "agent_patch": "--- a/app/retry.py\n+++ b/app/retry.py\n@@ -1,2 +1,2 @@\n def backoff(base, retries):\n-    return [base] * retries\n+    return [base * (2 ** i) for i in range(retries)]\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/retry.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.schema.required",
+      "title": "Patch submission: Report missing required fields",
+      "category": "benchmark_authoring",
+      "prompt": "Report missing required fields",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "authoring-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/schema.py": "def missing_required(payload, required):\n    return []\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.schema import missing_required\nassert missing_required({'a': 1}, ['a', 'b', 'c']) == ['b', 'c']\n"
+            }
+          ],
+          "agent_patch": "--- a/app/schema.py\n+++ b/app/schema.py\n@@ -1,2 +1,2 @@\n def missing_required(payload, required):\n-    return []\n+    return [key for key in required if key not in payload]\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/schema.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.logging.redact_email",
+      "title": "Patch submission: Redact email local part",
+      "category": "code_repair",
+      "prompt": "Redact email local part",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "security-utils",
+          "files": {
+            "app/__init__.py": "",
+            "app/logging.py": "def redact_email(value):\n    return value\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.logging import redact_email\nassert redact_email('ada@example.com') == '***@example.com'\nassert redact_email('no-email') == 'no-email'\n"
+            }
+          ],
+          "agent_patch": "--- a/app/logging.py\n+++ b/app/logging.py\n@@ -1,2 +1,5 @@\n def redact_email(value):\n-    return value\n+    if '@' not in value:\n+        return value\n+    _, domain = value.split('@', 1)\n+    return '***@' + domain\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/logging.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.tokens.count_words",
+      "title": "Patch submission: Count non-empty words",
+      "category": "data_pipeline",
+      "prompt": "Count non-empty words",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "analytics-core",
+          "files": {
+            "app/__init__.py": "",
+            "app/tokens.py": "def count_words(text):\n    return len(text)\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "python_inline_tests",
+              "code": "from app.tokens import count_words\nassert count_words('one  two\\nthree') == 3\n"
+            }
+          ],
+          "agent_patch": "--- a/app/tokens.py\n+++ b/app/tokens.py\n@@ -1,2 +1,2 @@\n def count_words(text):\n-    return len(text)\n+    return len([part for part in text.split() if part])\n",
+          "patch_allowed_paths": [
+            "app/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "app/tokens.py"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "wrong_edit",
+        "repo_style": "python_package",
+        "submission_mode": "unified_diff_patch"
+      }
+    },
+    {
+      "task_id": "patch.realistic.config.service_json",
+      "title": "Patch submission: Write service runtime config",
+      "category": "benchmark_authoring",
+      "prompt": "Write config/service.json with retries=3 and enabled=true.",
+      "fixtures": {
+        "toy_repo": {
+          "repo_id": "service-config",
+          "files": {
+            "README.md": "# service config\n"
+          },
+          "hidden_judge": [
+            {
+              "kind": "json_value",
+              "path": "config/service.json",
+              "json_path": "retries",
+              "expected": 3
+            },
+            {
+              "kind": "json_value",
+              "path": "config/service.json",
+              "json_path": "enabled",
+              "expected": true
+            }
+          ],
+          "agent_patch": "--- /dev/null\n+++ b/config/service.json\n@@ -0,0 +1 @@\n+{\"retries\": 3, \"enabled\": true}\n",
+          "patch_allowed_paths": [
+            "config/"
+          ]
+        }
+      },
+      "expected_artifacts": [
+        "config/service.json"
+      ],
+      "allowed_paths": [
+        "submission/model.patch"
+      ],
+      "scoring": [
+        {
+          "name": "hidden_judge_passed",
+          "kind": "metadata_flag",
+          "expected": "judge_passed",
+          "weight": 1.0
+        }
+      ],
+      "tags": [
+        "json",
+        "patch_based",
+        "round3",
+        "round4",
+        "simulated_real_repo",
+        "true_loop"
+      ],
+      "metadata": {
+        "difficulty": "easy-medium",
+        "failure_type_if_wrong": "format_error",
+        "repo_style": "config_artifact",
+        "submission_mode": "unified_diff_patch"
+      }
+    }
+  ]
+}

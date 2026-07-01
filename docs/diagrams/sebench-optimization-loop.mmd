@@ -1,0 +1,44 @@
+flowchart LR
+    subgraph Inputs["输入与版本"]
+        T["Task Spec\nschema + dataset_version"]
+        R["Repo Snapshot\nrepo + base_commit"]
+        C["Agent Config\nmodel + prompt + tools"]
+        Jv["Judge Version\nrules + hidden_tests_hash"]
+    end
+
+    subgraph Caches["缓存层"]
+        I["Image Cache\nbase/dependency layer"]
+        S["Snapshot Cache\ncheckout tarball"]
+        M["Repo Map Cache\nsymbols + dependency graph"]
+        P["Prompt Cache\nstatic context"]
+        V["Verdict Cache\npatch_hash + judge_version"]
+    end
+
+    subgraph Runtime["执行与评测"]
+        Sch["Locality-aware Scheduler\nrepo/image/runtime buckets"]
+        W["Work Container\nAgent loop + patch"]
+        G["Submission Gate\npath allowlist + sanitizer"]
+        Judge["Judge Cascade\nschema -> static -> tests -> LLM"]
+    end
+
+    subgraph Metrics["指标与闭环"]
+        Run["Run Record\nlatency + cost + cache hits"]
+        Fail["Failure Taxonomy\ntask/context/edit/tool/judge"]
+        Report["Optimization Report\npass_rate + cost_per_pass"]
+        Backlog["Improvement Backlog\nP0/P1/P2 actions"]
+    end
+
+    T --> Sch
+    R --> S --> Sch
+    C --> P --> W
+    Jv --> Judge
+    I --> Sch
+    M --> W
+    Sch --> W --> G --> Judge
+    G --> V
+    V --> Judge
+    Judge --> Run --> Fail --> Report --> Backlog
+    Backlog -->|"fix task spec"| T
+    Backlog -->|"improve context"| M
+    Backlog -->|"tune agent"| C
+    Backlog -->|"stabilize judge"| Jv
