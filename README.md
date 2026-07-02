@@ -22,7 +22,9 @@ data lineage, isolation, performance optimization, cache-hit strategy, pass-rate
 improvement, Mac MLX/MPS local benchmark boundaries, true evaluation-loop acceptance,
 P0/P1 toy true-loop measurements, round3 simulated-real-repo validation, round4 patch-submission validation, round5 parallel runner validation, round6 local git + hidden pytest worker sweep validation, round7 hidden pytest/filesystem I/O diagnostics, round8 independent-repeat stability sweep and production worker cap, round9 pytest plugin autoload optimization, round10 default acceleration validation, round11 pytest plugin dependency scan, round12 Torch MPS deployment, hard task timeout, repo-affinity scheduling, round13 shared cache/repo-shard scheduling, auto cache policy, and acceptance criteria. The companion analysis is in
 `docs/SE_BENCH_MATURE_PROJECT_OPTIMIZATION_ANALYSIS.md`; benchmark highlights are in
-`docs/BENCHMARK_RESULTS.md`; editable Mermaid sources
+`docs/BENCHMARK_RESULTS.md`; the public SWE reference boundary is in
+`docs/PUBLIC_SWE_REFERENCE_MAP.md`; planned follow-up work is in
+`docs/NEXT_STEPS.md`; editable Mermaid sources
 are under `docs/diagrams/` and mirrored as `docs/*.mmd` aliases.
 
 ## Quickstart
@@ -60,6 +62,40 @@ sebench reproduce \
   --requirements examples/requirements.json \
   --spatial-scene examples/synthetic_spatial_scene.json \
   --out reports/demo_run.json
+```
+
+Build teacher-student training data and LLaMA-Factory exports:
+
+```bash
+sebench import-swe-dataset \
+  --hf-dataset SWE-bench/SWE-bench_Lite \
+  --limit 20 \
+  --out artifacts/public_swe/dataset.json \
+  --training-out artifacts/public_swe/dataset_version.json
+
+sebench generate-data \
+  --requirements examples/requirements.json \
+  --count 10 \
+  --out artifacts/training/dataset_version.json
+
+sebench export-llamafactory \
+  --dataset-version artifacts/public_swe/dataset_version.json \
+  --out-dir artifacts/llamafactory/sebench_student_sft
+```
+
+After training a student on a CUDA machine and serving it through an
+OpenAI-compatible endpoint, compare model roles:
+
+```bash
+sebench swe-predict \
+  --dataset artifacts/public_swe/dataset.json \
+  --role student \
+  --out artifacts/public_swe/predictions.jsonl
+
+sebench evaluate-models \
+  --dataset examples/git_pytest_benchmark.json \
+  --roles base,student,teacher \
+  --out-dir reports/model_evals
 ```
 
 Start the API:
