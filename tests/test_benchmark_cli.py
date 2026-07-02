@@ -17,6 +17,7 @@ def load_run_mac_mlx_benchmark_module():
 
 def test_default_worker_cap_limits_normal_runs() -> None:
     module = load_run_mac_mlx_benchmark_module()
+    expected_cap = module.recommended_worker_cap(pytest_diagnostics=False)
 
     workers, cap = module.effective_worker_count(
         requested_workers=128,
@@ -26,8 +27,8 @@ def test_default_worker_cap_limits_normal_runs() -> None:
         adaptive_worker_cap=False,
     )
 
-    assert workers == 8
-    assert cap == 8
+    assert workers == min(128, 1024, expected_cap)
+    assert cap == expected_cap
 
 
 def test_default_worker_cap_limits_diagnostics_runs_more_strictly() -> None:

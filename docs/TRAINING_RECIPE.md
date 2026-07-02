@@ -2,6 +2,11 @@
 
 This recipe is intentionally optional. The default repo runs with mock inference.
 
+For the teacher-student feedback loop, see `docs/STUDENT_LOOP_REPORT.md`. GPT-family
+frontier models are used as teacher API providers for data generation and repair; the
+student is an open-source model trained with LLaMA-Factory and served through an
+OpenAI-compatible endpoint.
+
 ## Data
 
 - Agent benchmark tasks: start with a tiny sample from `princeton-nlp/SWE-bench` on Hugging Face or synthetic tasks from `examples/golden_tasks.json`.
