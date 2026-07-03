@@ -53,7 +53,18 @@ class SWEHarnessRunner:
         dataset_name: str,
         split: str,
         output_dir: Path,
+        results_path: Path | None = None,
     ) -> EvaluationReport:
+        if results_path is not None and results_path.exists():
+            return report_from_swe_results(
+                dataset_id=dataset_name,
+                results=_load_swe_results(results_path),
+                metadata={
+                    "predictions_path": str(predictions_path),
+                    "results_path": str(results_path),
+                    "split": split,
+                },
+            )
         if not self.command:
             return _skipped_report(
                 dataset_id=dataset_name,
@@ -91,11 +102,25 @@ class SWEHarnessRunner:
                     "predictions_path": str(predictions_path),
                 },
             )
-        return _skipped_report(
+        resolved_results_path = results_path or _find_swe_results_file(output_dir)
+        if resolved_results_path is None:
+            return _skipped_report(
+                dataset_id=dataset_name,
+                predictions_path=predictions_path,
+                reason="swebench_harness_completed_results_not_found",
+                metadata={"command": command, "stdout": completed.stdout[-4000:]},
+            )
+        return report_from_swe_results(
             dataset_id=dataset_name,
-            predictions_path=predictions_path,
-            reason="swebench_harness_completed_parse_results_manually",
-            metadata={"command": command, "stdout": completed.stdout[-4000:]},
+            results=_load_swe_results(resolved_results_path),
+            metadata={
+                "runner": "SWEHarnessRunner",
+                "command": command,
+                "stdout": completed.stdout[-4000:],
+                "predictions_path": str(predictions_path),
+                "results_path": str(resolved_results_path),
+                "split": split,
+            },
         )
 
 
@@ -103,6 +128,7 @@ def report_from_swe_results(
     *,
     dataset_id: str,
     results: dict[str, Any],
+    metadata: dict[str, Any] | None = None,
 ) -> EvaluationReport:
     run_id = new_run_id()
     task_results: list[TaskRunResult] = []
@@ -143,9 +169,64 @@ def report_from_swe_results(
         aggregate_score=round(aggregate, 6),
         reward_signal=round(aggregate, 6),
         regression_passed=aggregate >= 0.999,
-        metadata={"runner": "SWEHarnessRunner"},
+        metadata={"runner": "SWEHarnessRunner", **(metadata or {})},
         run_records=run_records,
     )
+
+
+def _load_swe_results(path: Path) -> dict[str, Any]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    parsed = _coerce_swe_results(payload)
+    if not parsed:
+        raise ValueError(f"could not parse SWE-bench results from {path}")
+    return parsed
+
+
+def _find_swe_results_file(output_dir: Path) -> Path | None:
+    candidates = sorted(
+        (path for path in output_dir.rglob("*.json") if path.is_file()),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
+    for path in candidates:
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if _coerce_swe_results(payload):
+            return path
+    return None
+
+
+def _coerce_swe_results(payload: Any) -> dict[str, Any]:
+    if isinstance(payload, dict):
+        if isinstance(payload.get("results"), dict):
+            return dict(payload["results"])
+        if isinstance(payload.get("instances"), list):
+            return _coerce_swe_results(payload["instances"])
+        if "resolved_ids" in payload or "unresolved_ids" in payload:
+            results: dict[str, Any] = {}
+            for instance_id in payload.get("resolved_ids", []):
+                results[str(instance_id)] = {"resolved": True}
+            for instance_id in payload.get("unresolved_ids", []):
+                results[str(instance_id)] = {"resolved": False}
+            return results
+        if "resolved" in payload and isinstance(payload.get("resolved"), list):
+            return {str(instance_id): {"resolved": True} for instance_id in payload["resolved"]}
+        if "instance_id" in payload:
+            return {str(payload["instance_id"]): payload}
+        if payload and all(
+            isinstance(key, str) and isinstance(value, bool | dict)
+            for key, value in payload.items()
+        ):
+            return dict(payload)
+    if isinstance(payload, list):
+        results = {}
+        for item in payload:
+            if isinstance(item, dict) and "instance_id" in item:
+                results[str(item["instance_id"])] = item
+        return results
+    return {}
 
 
 def _resolved(value: Any) -> bool:

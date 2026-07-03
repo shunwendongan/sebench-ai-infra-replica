@@ -162,31 +162,31 @@ v2.5 更新重点：完成 round13 shared cache + repo-shard scheduler 优化验
 ```mermaid
 flowchart LR
     subgraph Authoring["题目构建层"]
-        A1["需求解析器\nRequirement Parser"]
-        A2["Authoring Agent\n题目生成/补全"]
-        A3["质量检查器\nStatic QA"]
-        A4["任务仓库\nTask Registry"]
+        A1["需求解析器"]
+        A2["题目生成 Agent"]
+        A3["静态质量检查器"]
+        A4["任务注册表"]
     end
 
     subgraph Dataset["数据与版本层"]
-        D1["Repo Snapshot\nbase_commit + deps"]
-        D2["Task Spec Store\nversioned JSON/YAML"]
-        D3["Dataset Manifest\nsplit + version"]
-        D4["Artifact Store\npatch/log/trajectory"]
+        D1["仓库快照\nbase_commit + deps"]
+        D2["任务规格存储\nversioned JSON/YAML"]
+        D3["数据集清单\nsplit + version"]
+        D4["Artifact 存储\npatch/log/trajectory"]
     end
 
     subgraph Runtime["评测运行层"]
-        S1["Scheduler\n任务调度"]
-        W["Work Container\nAgent 执行/patch 生成"]
-        J["Judge Container\n隐藏测试/verdict"]
-        R["Result Collector\n结果归档"]
+        S1["任务调度器"]
+        W["Work 容器\nAgent 执行/patch 生成"]
+        J["Judge 容器\n隐藏测试/verdict"]
+        R["结果收集器"]
     end
 
     subgraph Feedback["分析与训练层"]
-        F1["Failure Analyzer\n失败归因"]
-        F2["Report Builder\n指标/榜单"]
-        F3["Trajectory Sanitizer\n去泄漏轨迹"]
-        F4["Training Export\nreward/SFT 数据"]
+        F1["失败分析器"]
+        F2["报告生成器\n指标/榜单"]
+        F3["轨迹清洗器\n去泄漏轨迹"]
+        F4["训练数据导出\nreward/SFT 数据"]
     end
 
     A1 --> A2 --> A3 --> A4
@@ -195,8 +195,8 @@ flowchart LR
     D2 --> D3
     D3 --> S1
     S1 --> W
-    W -->|"patch + stdout + tool trace"| J
-    J -->|"verdict + hidden test log"| R
+    W -->|"patch + stdout + 工具轨迹"| J
+    J -->|"verdict + 隐藏测试日志"| R
     R --> D4
     D4 --> F1 --> F2
     F1 --> F3 --> F4
@@ -215,12 +215,12 @@ flowchart LR
 flowchart TD
     N0["输入：真实 issue / 人工需求 / 3D 扩展任务"]
     N1["需求解析\n抽取目标、约束、验证方式"]
-    N2["题目生成\nproblem_statement + setup + tests"]
+    N2["题目生成\n题面 + 环境准备 + 测试"]
     N3["质量门禁\n可构建/可验证/无泄漏"]
-    N4["冻结版本\nrepo snapshot + task_id + manifest"]
-    N5["环境构建\nbase image + dependency layer"]
+    N4["冻结版本\n仓库快照 + task_id + manifest"]
+    N5["环境构建\n基础镜像 + 依赖层"]
     N6["Agent 执行\nWork 容器内编辑/运行/提交 patch"]
-    N7["Judge 验证\n隐藏测试/规则/LLM judge"]
+    N7["Judge 验证\n隐藏测试/规则/LLM 判定"]
     N8["结果归档\npatch/log/trajectory/verdict"]
     N9["失败归因\n环境/能力/题目质量/泄漏风险"]
     N10["样本回流\n修题、调参、生成训练数据"]
@@ -257,15 +257,15 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    I["Input Source\nissue / task idea / 3D scene"]
-    T["Task Spec\nversioned schema"]
-    M["Dataset Manifest\nsplit + hash"]
-    Q["Queue Item\nrun_id + task_id"]
-    W["Work Output\npatch + trace"]
-    J["Judge Output\nverdict + test log"]
-    R["Run Record\nmetrics + cost"]
-    A["Analysis Dataset\nfailure type + summary"]
-    E["Training Export\nsanitized trajectory + reward"]
+    I["输入来源\nissue / 任务想法 / 3D 场景"]
+    T["任务规格\nversioned schema"]
+    M["数据集清单\nsplit + hash"]
+    Q["队列项\nrun_id + task_id"]
+    W["Work 输出\npatch + trace"]
+    J["Judge 输出\nverdict + test log"]
+    R["运行记录\nmetrics + cost"]
+    A["分析数据集\nfailure type + summary"]
+    E["训练数据导出\nsanitized trajectory + reward"]
 
     I --> T
     T --> M
@@ -275,7 +275,7 @@ flowchart LR
     J --> R
     R --> A
     A --> E
-    R -->|"cold archive"| C["Artifact Store\nfull logs + container artifacts"]
+    R -->|"冷归档"| C["Artifact 存储\n完整日志 + 容器产物"]
 ```
 
 ### 6.1 Task Spec Schema
@@ -368,32 +368,32 @@ failure_type: null
 
 ```mermaid
 flowchart TB
-    subgraph WorkZone["Work Zone：Agent 可见"]
-        W1["problem_statement"]
-        W2["repo snapshot"]
-        W3["public tests / docs"]
-        W4["agent tools"]
-        W5["patch output"]
+    subgraph WorkZone["Work 区：Agent 可见"]
+        W1["题目说明\nproblem_statement"]
+        W2["仓库快照\nrepo snapshot"]
+        W3["公开测试 / 文档"]
+        W4["Agent 工具"]
+        W5["patch 输出"]
     end
 
     subgraph Boundary["隔离边界"]
         B1["提交路径白名单"]
         B2["只读输入挂载"]
         B3["网络策略"]
-        B4["artifact sanitizer"]
+        B4["artifact 清洗器"]
     end
 
-    subgraph JudgeZone["Judge Zone：Agent 不可见"]
-        J1["hidden tests"]
-        J2["oracle / rule checker"]
-        J3["judge script"]
-        J4["verdict builder"]
+    subgraph JudgeZone["Judge 区：Agent 不可见"]
+        J1["隐藏测试"]
+        J2["oracle / 规则检查器"]
+        J3["Judge 脚本"]
+        J4["verdict 构建器"]
     end
 
     W5 --> B1 --> J4
     W1 -. "不可反向访问" .-> J1
     W2 -. "不可反向访问" .-> J2
-    B4 -->|"sanitized trace"| O["Training / Analysis"]
+    B4 -->|"清洗后的轨迹"| O["训练 / 分析"]
     J1 --> J4
     J2 --> J4
     J3 --> J4

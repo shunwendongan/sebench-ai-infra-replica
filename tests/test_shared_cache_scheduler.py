@@ -1,3 +1,5 @@
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -9,9 +11,21 @@ from sebench_infra.orchestrator.sandbox import LocalSandbox, shared_checkout_cac
 
 def _small_git_dataset(task_count: int = 8) -> DatasetSpec:
     root = Path(__file__).resolve().parents[1]
-    dataset = DatasetSpec.model_validate_json(
-        (root / "examples/git_pytest_benchmark.json").read_text(encoding="utf-8")
-    )
+    manifest = root / "examples/git_pytest_benchmark.json"
+    if not manifest.exists():
+        subprocess.run(
+            [
+                sys.executable,
+                "scripts/build_git_pytest_benchmark.py",
+                "--tasks",
+                "128",
+                "--out",
+                str(manifest),
+            ],
+            cwd=root,
+            check=True,
+        )
+    dataset = DatasetSpec.model_validate_json(manifest.read_text(encoding="utf-8"))
     tasks = []
     for task in dataset.tasks[:task_count]:
         payload = task.model_dump(mode="json")

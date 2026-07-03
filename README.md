@@ -1,33 +1,29 @@
-# SE-Bench AI Infra Replica
+# SE-Bench AI Infra 复现项目
 
-This repository is a public-paper reproduction prototype inspired by a resume item about
-SE-Bench long-horizon AI agent evaluation, benchmark authoring agents, and 3D spatial
-reasoning diagnosis. It is not ByteDance internal code and does not claim to reproduce
-private systems. The implementation uses public papers, open-source benchmark patterns,
-and synthetic fixtures so it can be inspected and run locally.
+这是一个基于公开论文和开源工程模式搭建的 AI Infra 复现原型，主题覆盖 SE-Bench 风格长程 Agent 评测、benchmark authoring agent、Work/Judge 隔离评测，以及 3D 空间推理诊断。项目不包含字节跳动内部代码、内部数据或私有系统实现，也不声称复现任何未公开系统。
 
-## What This Builds
+本仓库使用公开论文、开源 benchmark 设计和合成 fixture，目标是让工程链路可以在本地被检查、运行和复盘。
 
-- A benchmark authoring loop that turns a natural-language requirement into typed tasks.
-- A dataset builder and SQLite artifact store for benchmark items and run records.
-- A Work/Judge evaluation orchestrator with path whitelist checks and a local mock runner.
-- A 3D spatial reasoning diagnostic module using centroid displacement and Kabsch SVD.
-- FastAPI and Typer entrypoints for service and CLI usage.
-- Technical documentation with architecture diagrams, related work, and reproduction notes.
+## 项目内容
 
-See `docs/TECHNICAL_DESIGN.md` for the original prototype design and
-`docs/SE_BENCH_REPRODUCTION_TECH_DESIGN.md` for the expanded v2.5 reproduction
-design covering literature priority, mature GitHub project lessons, architecture,
-data lineage, isolation, performance optimization, cache-hit strategy, pass-rate
-improvement, Mac MLX/MPS local benchmark boundaries, true evaluation-loop acceptance,
-P0/P1 toy true-loop measurements, round3 simulated-real-repo validation, round4 patch-submission validation, round5 parallel runner validation, round6 local git + hidden pytest worker sweep validation, round7 hidden pytest/filesystem I/O diagnostics, round8 independent-repeat stability sweep and production worker cap, round9 pytest plugin autoload optimization, round10 default acceleration validation, round11 pytest plugin dependency scan, round12 Torch MPS deployment, hard task timeout, repo-affinity scheduling, round13 shared cache/repo-shard scheduling, auto cache policy, and acceptance criteria. The companion analysis is in
-`docs/SE_BENCH_MATURE_PROJECT_OPTIMIZATION_ANALYSIS.md`; benchmark highlights are in
-`docs/BENCHMARK_RESULTS.md`; the public SWE reference boundary is in
-`docs/PUBLIC_SWE_REFERENCE_MAP.md`; planned follow-up work is in
-`docs/NEXT_STEPS.md`; editable Mermaid sources
-are under `docs/diagrams/` and mirrored as `docs/*.mmd` aliases.
+- 将自然语言需求转换为强类型 benchmark task 的题目构建闭环。
+- 用 SQLite artifact store 管理 benchmark item、数据集版本和运行记录。
+- 提供带路径白名单校验的 Work/Judge 评测编排器和本地 mock runner。
+- 提供 3D 空间推理诊断模块，使用质心位移和 Kabsch SVD 做确定性几何判断。
+- 提供 FastAPI 服务入口和 Typer CLI 入口。
+- 提供架构图、复现说明、公开参考边界、实验路线和 benchmark 结果文档。
 
-## Quickstart
+主要文档入口：
+
+- [docs/TECHNICAL_DESIGN.md](docs/TECHNICAL_DESIGN.md)：原型技术设计。
+- [docs/SE_BENCH_REPRODUCTION_TECH_DESIGN.md](docs/SE_BENCH_REPRODUCTION_TECH_DESIGN.md)：v2.5 扩展复现设计，覆盖文献优先级、成熟开源项目经验、Work/Judge 隔离、数据链路、性能优化、缓存策略、Mac MLX/MPS 本地 benchmark 边界、真实评测闭环、各轮实测结果和验收标准。
+- [docs/SE_BENCH_MATURE_PROJECT_OPTIMIZATION_ANALYSIS.md](docs/SE_BENCH_MATURE_PROJECT_OPTIMIZATION_ANALYSIS.md)：成熟项目经验与性能优化分析。
+- [docs/BENCHMARK_RESULTS.md](docs/BENCHMARK_RESULTS.md)：当前 benchmark 摘要。
+- [docs/PUBLIC_SWE_REFERENCE_MAP.md](docs/PUBLIC_SWE_REFERENCE_MAP.md)：公开 SWE 生态参考边界。
+- [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)：后续路线。
+- [docs/diagrams/](docs/diagrams/)：可编辑 Mermaid 图源；`docs/*.mmd` 是对应镜像文件。
+
+## 快速开始
 
 ```bash
 git clone https://github.com/shunwendongan/sebench-ai-infra-replica.git
@@ -40,7 +36,16 @@ python scripts/build_git_pytest_benchmark.py --tasks 128 --out examples/git_pyte
 python -m pytest
 ```
 
-Apple Silicon local benchmark setup:
+如果移动了本地 checkout 或虚拟环境里的 `sebench` 指向旧路径，重新安装当前项目入口即可：
+
+```bash
+python -m pip install -e . --no-deps
+python -c "import sebench_infra; print(sebench_infra.__file__)"
+sebench --help
+sebench evaluate --dataset examples/toy_benchmark.json --out artifacts/reports/smoke_toy_report.json
+```
+
+Apple Silicon 本地 benchmark 环境：
 
 ```bash
 python3 -m venv .venv-apple
@@ -49,13 +54,13 @@ python -m pip install --upgrade pip
 python -m pip install -e ".[dev,apple]"
 ```
 
-Install PyTorch MPS only when local Apple GPU comparison is needed:
+只有在需要本地 Apple GPU 对比时才安装 PyTorch MPS：
 
 ```bash
 python -m pip install -e ".[mps]"
 ```
 
-Run a mock reproduction pipeline:
+运行 mock 复现流水线：
 
 ```bash
 sebench reproduce \
@@ -64,7 +69,7 @@ sebench reproduce \
   --out reports/demo_run.json
 ```
 
-Build teacher-student training data and LLaMA-Factory exports:
+构建 teacher-student 训练数据并导出 LLaMA-Factory 数据：
 
 ```bash
 sebench import-swe-dataset \
@@ -83,8 +88,7 @@ sebench export-llamafactory \
   --out-dir artifacts/llamafactory/sebench_student_sft
 ```
 
-After training a student on a CUDA machine and serving it through an
-OpenAI-compatible endpoint, compare model roles:
+学生模型在 CUDA 机器上训练并通过 OpenAI-compatible endpoint 提供服务后，可比较不同模型角色：
 
 ```bash
 sebench swe-predict \
@@ -98,13 +102,27 @@ sebench evaluate-models \
   --out-dir reports/model_evals
 ```
 
-Start the API:
+本机已安装 Codex CLI 时，可以显式选择实验性 Codex agent runner 做小样本执行路径 smoke。该路径用于验证 agent 接入，不作为默认公平 benchmark：
+
+```bash
+sebench evaluate \
+  --dataset examples/patch_benchmark.json \
+  --max-tasks 1 \
+  --agent-backend codex_cli \
+  --codex-binary codex \
+  --codex-timeout-sec 300 \
+  --out artifacts/reports/codex_cli_smoke_report.json
+```
+
+启动 API 服务：
 
 ```bash
 uvicorn sebench_infra.api:app --reload
 ```
 
-Run the true-loop toy benchmark on Apple Silicon/MLX:
+## 常用 benchmark 命令
+
+运行 Apple Silicon/MLX toy true-loop benchmark：
 
 ```bash
 python scripts/run_mac_mlx_benchmark.py \
@@ -113,7 +131,7 @@ python scripts/run_mac_mlx_benchmark.py \
   --summary-out artifacts/reports/mac_mlx_baseline_summary.md
 ```
 
-Run the current round2 benchmark with MLX and Torch MPS sanity:
+运行当前 round2 benchmark，并做 MLX 与 Torch MPS sanity 检查：
 
 ```bash
 python scripts/run_mac_mlx_benchmark.py \
@@ -126,7 +144,7 @@ python scripts/run_mac_mlx_benchmark.py \
   --summary-out artifacts/reports/mac_mlx_round2_summary.md
 ```
 
-Run the standalone Apple Silicon CPU/MPS/MLX sanity:
+运行独立 Apple Silicon CPU/MPS/MLX sanity：
 
 ```bash
 python scripts/benchmark_apple_silicon.py \
@@ -136,7 +154,7 @@ python scripts/benchmark_apple_silicon.py \
   --out artifacts/reports/apple_silicon_round2_sanity_2048.json
 ```
 
-Build and run the round3 simulated-real-repo benchmark:
+构建并运行 round3 仿真真实 repo benchmark：
 
 ```bash
 python scripts/build_realistic_benchmark_manifest.py \
@@ -152,7 +170,7 @@ python scripts/run_mac_mlx_benchmark.py \
   --summary-out artifacts/reports/mac_mlx_realistic_round3_fixed_warm_summary.md
 ```
 
-Build and run the round4 patch-submission benchmark:
+构建并运行 round4 patch-submission benchmark：
 
 ```bash
 python scripts/build_patch_benchmark_manifest.py \
@@ -171,7 +189,7 @@ python scripts/run_mac_mlx_benchmark.py \
   --summary-out artifacts/reports/mac_mlx_patch_round4_warm_summary.md
 ```
 
-Build and run the round6 local git + hidden pytest worker sweep:
+构建并运行 round6 本地 git + hidden pytest worker sweep：
 
 ```bash
 python scripts/build_git_pytest_benchmark.py \
@@ -191,7 +209,7 @@ python scripts/run_worker_sweep.py \
   --summary-out artifacts/reports/git_pytest_round6_worker_sweep.md
 ```
 
-Run the round7 hidden pytest + filesystem I/O diagnostics:
+运行 round7 hidden pytest 与文件系统 I/O 诊断：
 
 ```bash
 python scripts/build_git_pytest_benchmark.py \
@@ -213,7 +231,7 @@ python scripts/analyze_io_pytest_diagnostics.py \
   --out artifacts/reports/git_pytest_round7_diagnostics_analysis.md
 ```
 
-Run the round8 stability sweep and production-cap validation:
+运行 round8 稳定性 sweep 和生产 cap 验证：
 
 ```bash
 python scripts/run_worker_sweep.py \
@@ -252,15 +270,9 @@ python scripts/run_worker_sweep.py \
   --summary-out artifacts/reports/git_pytest_round8_clone_baseline_sweep.md
 ```
 
-By default, Mac local normal runs cap workers to the current measured stable value
-(`8` workers). Hard-timeout production runs can further apply repo-affinity cap so
-tasks from the same repo family reuse the same worker cache. `--cache-policy auto`
-is the default: stable repo-affinity production resolves to process-local cache,
-while explicit `--pressure-test` resolves to shared checkout cache. Use
-`--pressure-test` when intentionally testing 64/96/128-worker saturation.
-Diagnostics mode caps to `32` workers unless pressure testing.
+Mac 本地普通运行默认把 worker 限制为当前实测稳定值 `8`。生产 hard-timeout 路径还会应用 repo-affinity cap，让同一 repo family 的任务复用同一 worker cache。`--cache-policy auto` 是默认策略：稳定 repo-affinity 生产路径会解析为 process-local cache，显式 `--pressure-test` 会解析为 shared checkout cache。只有在刻意测试 64/96/128-worker 饱和时才使用 `--pressure-test`。诊断模式默认限制为 `32` workers，除非显式开启压力测试。
 
-Run the current default pytest acceleration validation:
+运行当前默认 pytest 加速验证：
 
 ```bash
 python scripts/run_worker_sweep.py \
@@ -281,13 +293,9 @@ python scripts/run_worker_sweep.py \
   --summary-out artifacts/reports/git_pytest_round10_default_accel_sweep.md
 ```
 
-Hidden pytest subprocesses use `--pytest-plugin-policy auto` by default. The scanner
-keeps `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` for generated local fixtures and automatically
-opts out for external repositories that declare pytest plugin dependencies. Compatibility
-aliases remain available: `--disable-pytest-plugin-autoload` maps to `disabled`, and
-`--enable-pytest-plugin-autoload` maps to `enabled`.
+hidden pytest 子进程默认使用 `--pytest-plugin-policy auto`。扫描器会对本地生成 fixture 保持 `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`，并在外部仓库声明 pytest 插件依赖时自动退出该加速路径。兼容别名仍可使用：`--disable-pytest-plugin-autoload` 映射到 `disabled`，`--enable-pytest-plugin-autoload` 映射到 `enabled`。
 
-Validate the plugin dependency scan:
+验证插件依赖扫描：
 
 ```bash
 python scripts/run_mac_mlx_benchmark.py \
@@ -304,7 +312,7 @@ python scripts/run_mac_mlx_benchmark.py \
   --summary-out artifacts/reports/pytest_plugin_policy_auto_summary.md
 ```
 
-Run the current hard-timeout + repo-affinity production validation:
+运行当前 hard-timeout + repo-affinity 生产验证：
 
 ```bash
 python scripts/run_mac_mlx_benchmark.py \
@@ -325,8 +333,7 @@ python scripts/run_mac_mlx_benchmark.py \
   --summary-out artifacts/reports/shared_cache_auto_production_1024_summary.md
 ```
 
-Run shared cache + repo-shard pressure A/B when deliberately probing high-worker
-cache fragmentation:
+刻意探测高 worker cache fragmentation 时，可做 shared cache + repo-shard 压力 A/B：
 
 ```bash
 python scripts/run_worker_sweep.py \
@@ -349,7 +356,7 @@ python scripts/run_worker_sweep.py \
   --summary-out artifacts/reports/shared_cache_ab_shared_repo_shard_fast_cleanup_128_sweep.md
 ```
 
-Run adaptive pressure testing when deliberately probing saturation:
+刻意探测饱和点时，可运行 adaptive pressure testing：
 
 ```bash
 python scripts/run_mac_mlx_benchmark.py \
@@ -369,7 +376,7 @@ python scripts/run_mac_mlx_benchmark.py \
   --summary-out artifacts/reports/timeout_scheduler_hard_adaptive_pressure_128_summary.md
 ```
 
-Compare two benchmark reports:
+比较两个 benchmark 报告：
 
 ```bash
 python scripts/compare_benchmark_reports.py \
@@ -378,25 +385,18 @@ python scripts/compare_benchmark_reports.py \
   --out artifacts/reports/mac_mlx_optimization_delta.md
 ```
 
-Read the industrial benchmark interpretation:
+查看工业化 benchmark 解读：
 
 ```bash
 sed -n '1,220p' docs/BENCHMARK_RESULTS.md
 ```
 
-Generated local git fixtures and benchmark reports are intentionally ignored by
-Git. Rebuild fixtures with `scripts/build_git_pytest_benchmark.py`; write large
-run reports under `artifacts/reports/` for local analysis.
+本地生成的 git fixture 和 benchmark report 会被 Git 忽略。需要复建 fixture 时运行 `scripts/build_git_pytest_benchmark.py`；较大的本地运行报告建议写入 `artifacts/reports/` 用于分析。
 
-## AI Infra Positioning
+## AI Infra 定位
 
-The project treats benchmark creation and evaluation as infrastructure: typed contracts,
-isolated execution, repeatable datasets, regression checks, observability hooks, and clear
-adapter boundaries for LLM inference, vLLM serving, LoRA fine-tuning, and future GPU-scale
-evaluation.
+本项目把 benchmark 创建和评测视为基础设施能力：强类型契约、隔离执行、可重复数据集、回归检查、可观测性 hook，以及面向 LLM 推理、vLLM serving、LoRA 微调和未来 GPU 规模评测的清晰 adapter 边界。
 
-## Main References
+## 主要公开参考
 
-The documentation cites public references such as SWE-bench, AgentBench, SWE-agent,
-3D-LLM, 3D-LLava, ScanNet, LoRA, OpenAI-compatible vLLM serving, Hugging Face PEFT,
-and Docker-based execution isolation.
+文档引用的公开参考包括 SWE-bench、AgentBench、SWE-agent、3D-LLM、3D-LLava、ScanNet、LoRA、OpenAI-compatible vLLM serving、Hugging Face PEFT，以及基于 Docker 的执行隔离。

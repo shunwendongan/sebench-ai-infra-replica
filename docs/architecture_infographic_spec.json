@@ -34,7 +34,7 @@
     "cards": [
       {"icon": "shield", "label": "无内部代码", "color": "blue"},
       {"icon": "balance", "label": "引用公开来源", "color": "green"},
-      {"icon": "bug", "label": "Synthetic Fixture", "color": "yellow"},
+      {"icon": "bug", "label": "合成 Fixture", "color": "yellow"},
       {"icon": "cost", "label": "低成本运行", "color": "pink"}
     ]
   }

@@ -1,4 +1,4 @@
-# SE-Bench AI Infra Replica 技术文档
+# SE-Bench AI Infra 复现项目技术文档
 
 > 扩展复现设计请见 `docs/SE_BENCH_REPRODUCTION_TECH_DESIGN.md`。该 v2.5 文档补充了高引用文献优先级、GitHub 高赞成熟项目经验、缓存命中率/准确率/成本指标体系、Work/Judge 隔离、数据链路、P0/P1/P2 改造路线、真实评测闭环、Mac MLX/MPS 本地 benchmark 边界，以及 round2 toy true-loop、round3 仿真真实 repo、round4 patch submission、round5 并发 runner、round6 本地真实 git + hidden pytest worker sweep、round7 hidden pytest/filesystem I/O 诊断与 worktree 优化、round8 独立 repeat 稳定性 sweep 与生产 worker cap、round9 pytest plugin autoload 优化实测结果、round10 默认开启 pytest plugin autoload 加速后的复测结论、round11 pytest plugin dependency scan、round12 hard timeout/repo-affinity，以及 round13 shared cache/repo-shard/auto cache policy。成熟项目经验与性能优化的独立分析见 `docs/SE_BENCH_MATURE_PROJECT_OPTIMIZATION_ANALYSIS.md`，benchmark 摘要见 `docs/BENCHMARK_RESULTS.md`。
 
@@ -31,23 +31,23 @@
 
 ```mermaid
 flowchart LR
-  A["需求解析"] --> B["Authoring Agent"]
+  A["需求解析"] --> B["题目生成 Agent"]
   B --> C["TaskSpec / Pydantic Schema"]
-  C --> D["Dataset Builder"]
-  D --> E["Artifact Store / SQLite"]
-  E --> F["Evaluation Orchestrator"]
-  F --> W["Work Container: Agent 执行"]
-  F --> J["Judge Container: 隔离评测"]
+  C --> D["数据集构建器"]
+  D --> E["Artifact 存储 / SQLite"]
+  E --> F["评测编排器"]
+  F --> W["Work 容器：Agent 执行"]
+  F --> J["Judge 容器：隔离评测"]
   W --> G["提交路径白名单"]
   G --> J
-  J --> S["Score / Reward Signal"]
-  S --> R["Report / Regression"]
+  J --> S["分数 / Reward 信号"]
+  S --> R["报告 / 回归检查"]
   R --> T["评测-训练闭环"]
 
   subgraph Spatial["3D 空间推理诊断与几何桥接"]
     P["点云/场景变化样本"] --> Q["几何桥接: dx dy dz + Kabsch"]
     Q --> X["结构化空间事实前缀"]
-    X --> L["LLM Adapter"]
+    X --> L["LLM 适配器"]
     H["Attention Hook / Probe 接口"] --> M["诊断报告"]
   end
 
@@ -64,7 +64,7 @@ flowchart LR
 
 ## 4. 数据流与接口约定
 
-### 4.1 Authoring
+### 4.1 题目构建 Authoring
 
 输入是一个公开复现需求：
 
@@ -87,7 +87,7 @@ flowchart LR
 }
 ```
 
-### 4.2 Evaluation
+### 4.2 评测 Evaluation
 
 `EvaluationOrchestrator` 对每个 `TaskSpec` 执行：
 
@@ -98,7 +98,7 @@ flowchart LR
 5. 聚合为 `EvaluationReport`，并生成 reward signal。
 6. `RegressionGate` 用最小分数阈值做回归检查。
 
-### 4.3 3D Geometry Bridge
+### 4.3 3D 几何桥接 Geometry Bridge
 
 输入是 synthetic ScanNet-style scene fixture：
 
