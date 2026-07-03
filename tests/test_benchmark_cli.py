@@ -1,7 +1,14 @@
 import importlib.util
 from pathlib import Path
 
+import sebench_infra
+import sebench_infra.cli
 from sebench_infra.benchmark.schemas import DatasetSpec, TaskCategory, TaskSpec
+
+
+def test_package_and_cli_module_imports() -> None:
+    assert sebench_infra.__file__
+    assert sebench_infra.cli.app is not None
 
 
 def load_run_mac_mlx_benchmark_module():

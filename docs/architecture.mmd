@@ -1,30 +1,30 @@
 flowchart LR
     subgraph Authoring["题目构建层"]
-        A1["需求解析器\nRequirement Parser"]
-        A2["Authoring Agent\n题目生成/补全"]
-        A3["质量检查器\nStatic QA"]
-        A4["任务仓库\nTask Registry"]
+        A1["需求解析器"]
+        A2["题目生成 Agent"]
+        A3["静态质量检查器"]
+        A4["任务注册表"]
     end
 
     subgraph Dataset["数据与版本层"]
-        D1["Repo Snapshot\nbase_commit + deps"]
-        D2["Task Spec Store\nversioned JSON/YAML"]
-        D3["Dataset Manifest\nsplit + version"]
-        D4["Artifact Store\npatch/log/trajectory"]
+        D1["仓库快照\nbase_commit + deps"]
+        D2["任务规格存储\nversioned JSON/YAML"]
+        D3["数据集清单\nsplit + version"]
+        D4["Artifact 存储\npatch/log/trajectory"]
     end
 
     subgraph Runtime["评测运行层"]
-        S1["Scheduler\n任务调度"]
-        W["Work Container\nAgent 执行/patch 生成"]
-        J["Judge Container\n隐藏测试/verdict"]
-        R["Result Collector\n结果归档"]
+        S1["任务调度器"]
+        W["Work 容器\nAgent 执行/patch 生成"]
+        J["Judge 容器\n隐藏测试/verdict"]
+        R["结果收集器"]
     end
 
     subgraph Feedback["分析与训练层"]
-        F1["Failure Analyzer\n失败归因"]
-        F2["Report Builder\n指标/榜单"]
-        F3["Trajectory Sanitizer\n去泄漏轨迹"]
-        F4["Training Export\nreward/SFT 数据"]
+        F1["失败分析器"]
+        F2["报告生成器\n指标/榜单"]
+        F3["轨迹清洗器\n去泄漏轨迹"]
+        F4["训练数据导出\nreward/SFT 数据"]
     end
 
     A1 --> A2 --> A3 --> A4
@@ -33,8 +33,8 @@ flowchart LR
     D2 --> D3
     D3 --> S1
     S1 --> W
-    W -->|"patch + stdout + tool trace"| J
-    J -->|"verdict + hidden test log"| R
+    W -->|"patch + stdout + 工具轨迹"| J
+    J -->|"verdict + 隐藏测试日志"| R
     R --> D4
     D4 --> F1 --> F2
     F1 --> F3 --> F4

@@ -1,62 +1,46 @@
-# Next Steps
+# 后续路线
 
-This roadmap keeps the project aligned with a public SWE-bench-style evaluation
-and training loop. It is ordered by engineering value and resume evidence, not by
-feature size.
+这份路线图用于让项目持续对齐公开 SWE-bench 风格的评测与训练闭环。优先级按工程价值和可展示证据排序，而不是按功能体量排序。
 
-## P0: Real Public SWE Evaluation Smoke
+## P0：真实公开 SWE 评测冒烟
 
-- Run `import-swe-dataset` against `SWE-bench/SWE-bench_Lite` or a small exported
-  JSONL sample with at least 20 held-out issues.
-- Configure a Linux/Docker machine with the official SWE-bench harness.
-- Generate predictions with `swe-predict` for `base`, `student`, and `teacher`
-  roles, then run `run-swe-harness` with an explicit harness command.
-- Save the report under `reports/` and summarize resolved rate, invalid patch
-  rate, patch apply failures, timeout count, and average latency.
+- 用 `import-swe-dataset` 导入 `SWE-bench/SWE-bench_Lite`，或导入一份至少包含 20 个留出 issue 的小型 JSONL 样本。
+- 准备一台带 Linux/Docker 的机器，并配置官方 SWE-bench harness。
+- 使用 `swe-predict` 分别为 `base`、`student` 和 `teacher` 角色生成 predictions，然后用显式 harness command 运行 `run-swe-harness`。
+- 将报告保存到 `reports/`，并汇总 resolved rate、invalid patch rate、patch apply failure、timeout count 和平均延迟。
 
-## P1: Model-Backed Agent Runner
+## P1：接入真实模型的 Agent 运行器
 
-- Replace the current single-turn patch prompt with a small repo-context packer:
-  issue text, file tree, selected snippets, and prior failure messages.
-- Add patch budget controls: max prompt tokens, max output tokens, allowed paths,
-  and retry count for invalid unified diffs.
-- Record one artifact per model attempt: prompt hash, model ID, raw output, parsed
-  patch, patch validation result, and final judge status.
-- Keep multi-step shell agents out of scope until the single-turn patch path has
-  stable metrics.
+- 将当前单轮 patch prompt 替换为小型 repo-context packer：issue 文本、文件树、选中代码片段和历史失败信息。
+- 增加 patch budget 控制：最大 prompt tokens、最大输出 tokens、允许修改路径，以及 invalid unified diff 的重试次数。
+- 为每次模型尝试记录一个 artifact：prompt hash、model ID、原始输出、解析后的 patch、patch 校验结果和最终 judge 状态。
+- 在单轮 patch 路径具备稳定指标前，暂不扩展到多步 shell agent。
 
-## P2: Training Data Expansion
+## P2：扩展训练数据
 
-- Add adapters for public successful trajectories such as SWE-smith trajectories
-  and SWE-Gym/OpenHands SFT trajectories.
-- Export two LLaMA-Factory datasets: `issue_to_patch` and `trajectory_action`.
-- Filter examples by license, source, context length, duplicate patch hash, and
-  held-out split isolation.
-- Track dataset version IDs in every model comparison report.
+- 增加公开成功轨迹适配器，例如 SWE-smith trajectories 和 SWE-Gym/OpenHands SFT trajectories。
+- 导出两类 LLaMA-Factory 数据集：`issue_to_patch` 和 `trajectory_action`。
+- 按 license、source、context length、duplicate patch hash 和 held-out split isolation 过滤样本。
+- 在每份模型对比报告中记录 dataset version ID。
 
-## P3: Student Training and Serving
+## P3：学生模型训练与服务
 
-- Train a QLoRA student on the Windows CUDA machine using the generated
-  LLaMA-Factory config.
-- Serve the adapter through vLLM or LLaMA-Factory's OpenAI-style API.
-- Compare base vs student vs teacher on the same held-out public SWE tasks.
-- Report only measured metrics and keep GPT-family models as teacher APIs, not
-  trainable weights.
+- 在 Windows CUDA 机器上用生成的 LLaMA-Factory 配置训练 QLoRA student。
+- 通过 vLLM 或 LLaMA-Factory 的 OpenAI-style API 对外提供 adapter 服务。
+- 在同一组 held-out public SWE tasks 上比较 base、student 和 teacher。
+- 只报告实测指标；GPT-family 模型只作为 teacher API，不作为可训练权重。
 
-## P4: Platform Hardening
+## P4：平台化加固
 
-- Add a Postgres/object-storage path for larger run records and artifacts.
-- Add OpenTelemetry spans for data import, model inference, patch parsing, patch
-  apply, harness runtime, and scoring.
-- Add CI jobs for toy hidden-pytest tasks; keep full SWE-bench harness runs as
-  explicit/manual jobs due to Docker and runtime cost.
-- Add a reproducibility bundle with commit hash, dataset version, model config,
-  command lines, environment, and hardware.
+- 为更大的 run records 和 artifacts 增加 Postgres/object-storage 路径。
+- 为数据导入、模型推理、patch 解析、patch apply、harness runtime 和 scoring 增加 OpenTelemetry spans。
+- 为 toy hidden-pytest tasks 增加 CI job；完整 SWE-bench harness 运行由于 Docker 和耗时成本，应保留为显式/manual job。
+- 增加 reproducibility bundle，记录 commit hash、dataset version、model config、命令行、环境和硬件信息。
 
-## Resume Evidence Checklist
+## 简历证据清单
 
-- Public reference map: `docs/PUBLIC_SWE_REFERENCE_MAP.md`.
-- At least one public SWE import artifact.
-- At least one model comparison report.
-- At least one failed-case analysis with failure categories.
-- Clear boundary statement: no internal code, data, protocol, or private metrics.
+- 公开参考边界：`docs/PUBLIC_SWE_REFERENCE_MAP.md`。
+- 至少一个 public SWE import artifact。
+- 至少一个 model comparison report。
+- 至少一份带失败类别的 failed-case analysis。
+- 清晰边界声明：不使用内部代码、数据、协议或私有指标。

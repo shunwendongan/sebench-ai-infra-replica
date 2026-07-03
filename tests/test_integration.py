@@ -1,4 +1,6 @@
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 from sebench_infra.authoring import AuthoringAgent, MockLLMClient
@@ -6,6 +8,25 @@ from sebench_infra.benchmark import DatasetBuilder
 from sebench_infra.benchmark.schemas import DatasetSpec, ScoringRule, TaskCategory, TaskSpec
 from sebench_infra.orchestrator import EvaluationOrchestrator
 from sebench_infra.spatial import SpatialDiagnosisEngine
+
+
+def _load_git_pytest_dataset() -> DatasetSpec:
+    root = Path(__file__).resolve().parents[1]
+    manifest = root / "examples/git_pytest_benchmark.json"
+    if not manifest.exists():
+        subprocess.run(
+            [
+                sys.executable,
+                "scripts/build_git_pytest_benchmark.py",
+                "--tasks",
+                "128",
+                "--out",
+                str(manifest),
+            ],
+            cwd=root,
+            check=True,
+        )
+    return DatasetSpec.model_validate_json(manifest.read_text(encoding="utf-8"))
 
 
 def test_mock_reproduction_pipeline(tmp_path: Path) -> None:
@@ -660,10 +681,7 @@ def test_patch_submission_parallel_runner_records_split_timings() -> None:
 
 
 def test_local_git_pytest_fixture_runs_hidden_tests() -> None:
-    root = Path(__file__).resolve().parents[1]
-    dataset = DatasetSpec.model_validate_json(
-        (root / "examples/git_pytest_benchmark.json").read_text(encoding="utf-8")
-    )
+    dataset = _load_git_pytest_dataset()
     small_dataset = dataset.model_copy(update={"tasks": dataset.tasks[:8]})
 
     report = EvaluationOrchestrator().run(small_dataset, workers=4, task_timeout_sec=20)
@@ -687,10 +705,7 @@ def test_local_git_pytest_fixture_runs_hidden_tests() -> None:
 
 
 def test_local_git_pytest_fixture_supports_clone_checkout_strategy() -> None:
-    root = Path(__file__).resolve().parents[1]
-    dataset = DatasetSpec.model_validate_json(
-        (root / "examples/git_pytest_benchmark.json").read_text(encoding="utf-8")
-    )
+    dataset = _load_git_pytest_dataset()
     small_dataset = dataset.model_copy(update={"tasks": dataset.tasks[:8]})
 
     report = EvaluationOrchestrator(checkout_strategy="clone").run(
@@ -706,10 +721,7 @@ def test_local_git_pytest_fixture_supports_clone_checkout_strategy() -> None:
 
 
 def test_local_git_pytest_fixture_supports_snapshot_checkout_strategy() -> None:
-    root = Path(__file__).resolve().parents[1]
-    dataset = DatasetSpec.model_validate_json(
-        (root / "examples/git_pytest_benchmark.json").read_text(encoding="utf-8")
-    )
+    dataset = _load_git_pytest_dataset()
     small_dataset = dataset.model_copy(update={"tasks": dataset.tasks[:4]})
 
     report = EvaluationOrchestrator(checkout_strategy="copytree").run(

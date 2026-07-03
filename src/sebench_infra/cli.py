@@ -59,12 +59,23 @@ def evaluate(
     dataset: Path = typer.Option(..., exists=True, readable=True),
     out: Path = typer.Option(Path("reports/evaluation_report.json")),
     runner_mode: str = typer.Option("local"),
+    max_tasks: int | None = typer.Option(None, min=1),
+    agent_backend: str = typer.Option("fixture"),
+    codex_binary: str = typer.Option("codex"),
+    codex_model: str | None = typer.Option(None),
+    codex_timeout_sec: float = typer.Option(300.0, min=1.0),
 ) -> None:
     """Evaluate a dataset with the local mock runner or Docker runner."""
 
     configure_logging()
     dataset_spec = DatasetSpec.model_validate_json(dataset.read_text(encoding="utf-8"))
-    report = EvaluationOrchestrator(runner_mode=runner_mode).run(dataset_spec)
+    report = EvaluationOrchestrator(
+        runner_mode=runner_mode,
+        agent_backend=agent_backend,
+        codex_binary=codex_binary,
+        codex_model=codex_model,
+        codex_timeout_sec=codex_timeout_sec,
+    ).run(dataset_spec, max_tasks=max_tasks)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(report.model_dump_json(indent=2), encoding="utf-8")
     typer.echo(f"aggregate_score={report.aggregate_score:.3f} report={out}")
@@ -350,6 +361,7 @@ def run_swe_harness(
     split: str = typer.Option("test"),
     out: Path = typer.Option(Path("reports/swebench_harness_report.json")),
     output_dir: Path = typer.Option(Path("artifacts/swebench_harness")),
+    results_path: Path | None = typer.Option(None, exists=True, readable=True),
     harness_command: str | None = typer.Option(None),
     timeout_sec: float = typer.Option(3600.0, min=1.0),
 ) -> None:
@@ -364,6 +376,7 @@ def run_swe_harness(
         dataset_name=dataset_name,
         split=split,
         output_dir=output_dir,
+        results_path=results_path,
     )
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(report.model_dump_json(indent=2), encoding="utf-8")

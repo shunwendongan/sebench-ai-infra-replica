@@ -45,6 +45,10 @@ class EvaluationOrchestrator:
         cache_policy: str = "process",
         shared_cache_root: str = "artifacts/cache/judge_shared",
         task_distribution: str = "load",
+        agent_backend: str = "fixture",
+        codex_binary: str = "codex",
+        codex_model: str | None = None,
+        codex_timeout_sec: float = 300.0,
     ) -> None:
         self.scorer = ScoreEngine()
         self.regression_gate = RegressionGate()
@@ -65,6 +69,10 @@ class EvaluationOrchestrator:
         self.cache_policy = cache_policy
         self.shared_cache_root = shared_cache_root
         self.task_distribution = task_distribution
+        self.agent_backend = agent_backend
+        self.codex_binary = codex_binary
+        self.codex_model = codex_model
+        self.codex_timeout_sec = codex_timeout_sec
         if runner_mode == "docker":
             self.sandbox = DockerSandbox(work_image, judge_image, timeout_seconds)
         else:
@@ -76,6 +84,10 @@ class EvaluationOrchestrator:
                 pytest_plugin_policy=pytest_plugin_policy,
                 cache_policy=cache_policy,
                 shared_cache_root=shared_cache_root,
+                agent_backend=agent_backend,
+                codex_binary=codex_binary,
+                codex_model=codex_model,
+                codex_timeout_sec=codex_timeout_sec,
             )
 
     def run(
@@ -145,6 +157,7 @@ class EvaluationOrchestrator:
                 "task_timeout_sec": task_timeout_sec,
                 "cache_policy": self.cache_policy,
                 "task_distribution": self.task_distribution,
+                "agent_backend": self.agent_backend,
                 "hard_task_timeout": bool(
                     self.runner_mode == "local"
                     and self.hard_task_timeout
@@ -345,6 +358,13 @@ class EvaluationOrchestrator:
                 "disable_pytest_plugin_autoload": metadata.get(
                     "disable_pytest_plugin_autoload"
                 ),
+                "agent_backend": metadata.get("agent_backend"),
+                "agent_failure_reason": metadata.get("agent_failure_reason"),
+                "patch_validation_status": metadata.get("patch_validation_status"),
+                "codex_binary": metadata.get("codex_binary"),
+                "codex_model": metadata.get("codex_model"),
+                "codex_returncode": metadata.get("codex_returncode"),
+                "codex_raw_output_path": metadata.get("codex_raw_output_path"),
                 "hard_timeout_triggered": metadata.get("hard_timeout_triggered", False),
                 "task_timeout_sec": metadata.get("task_timeout_sec"),
                 "timeout_elapsed_sec": metadata.get("timeout_elapsed_sec"),
@@ -396,6 +416,10 @@ class _LocalProcessScheduler:
             "pytest_plugin_policy": orchestrator.pytest_plugin_policy,
             "cache_policy": orchestrator.cache_policy,
             "shared_cache_root": orchestrator.shared_cache_root,
+            "agent_backend": orchestrator.agent_backend,
+            "codex_binary": orchestrator.codex_binary,
+            "codex_model": orchestrator.codex_model,
+            "codex_timeout_sec": orchestrator.codex_timeout_sec,
         }
         self.states: list[_WorkerState] = []
         self.pending_by_worker = self._build_pending_queues()

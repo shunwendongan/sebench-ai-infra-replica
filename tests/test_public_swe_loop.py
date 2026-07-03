@@ -5,6 +5,7 @@ from sebench_infra.training_loop import (
     ExternalBenchmarkSource,
     ModelPatchAgent,
     StaticPatchClient,
+    SWEHarnessRunner,
     SWEIssueInstance,
     apply_unified_diff_to_files,
     swe_instances_to_dataset_version,
@@ -109,3 +110,37 @@ def test_write_swe_predictions_uses_official_jsonl_shape(tmp_path: Path) -> None
     assert row["instance_id"] == "demo__repo-1"
     assert row["model_name_or_path"] == "student-lora"
     assert "model_patch" in row
+
+
+def test_swe_harness_runner_parses_explicit_results_path(tmp_path: Path) -> None:
+    predictions = tmp_path / "predictions.jsonl"
+    write_swe_predictions(
+        {
+            "demo__repo-1": "diff --git a/a.py b/a.py\n@@ -1 +1 @@\n-a\n+b\n",
+            "demo__repo-2": "",
+        },
+        predictions,
+        model_name_or_path="student-lora",
+    )
+    results = tmp_path / "results.json"
+    results.write_text(
+        json.dumps(
+            {
+                "resolved_ids": ["demo__repo-1"],
+                "unresolved_ids": ["demo__repo-2"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    report = SWEHarnessRunner().run(
+        predictions_path=predictions,
+        dataset_name="SWE-bench/SWE-bench_Lite",
+        split="test",
+        output_dir=tmp_path / "harness",
+        results_path=results,
+    )
+
+    assert report.aggregate_score == 0.5
+    assert [result.status for result in report.task_results] == ["passed", "failed"]
+    assert report.metadata["results_path"] == str(results)

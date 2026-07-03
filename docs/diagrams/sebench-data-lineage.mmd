@@ -1,13 +1,13 @@
 flowchart LR
-    I["Input Source\nissue / task idea / 3D scene"]
-    T["Task Spec\nversioned schema"]
-    M["Dataset Manifest\nsplit + hash"]
-    Q["Queue Item\nrun_id + task_id"]
-    W["Work Output\npatch + trace"]
-    J["Judge Output\nverdict + test log"]
-    R["Run Record\nmetrics + cost"]
-    A["Analysis Dataset\nfailure type + summary"]
-    E["Training Export\nsanitized trajectory + reward"]
+    I["输入来源\nissue / 任务想法 / 3D 场景"]
+    T["任务规格\nversioned schema"]
+    M["数据集清单\nsplit + hash"]
+    Q["队列项\nrun_id + task_id"]
+    W["Work 输出\npatch + trace"]
+    J["Judge 输出\nverdict + test log"]
+    R["运行记录\nmetrics + cost"]
+    A["分析数据集\nfailure type + summary"]
+    E["训练数据导出\nsanitized trajectory + reward"]
 
     I --> T
     T --> M
@@ -17,4 +17,4 @@ flowchart LR
     J --> R
     R --> A
     A --> E
-    R -->|"cold archive"| C["Artifact Store\nfull logs + container artifacts"]
+    R -->|"冷归档"| C["Artifact 存储\n完整日志 + 容器产物"]
